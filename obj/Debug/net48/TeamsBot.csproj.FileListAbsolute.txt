@@ -1,0 +1,7 @@
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.csproj.AssemblyReference.cache
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.csproj.SuggestedBindingRedirects.cache
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.exe.config
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.AssemblyInfoInputs.cache
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.AssemblyInfo.cs
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.csproj.CoreCompileInputs.cache

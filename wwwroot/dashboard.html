@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meeting Agent — Live Dashboard</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #4f8ef7;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --yellow: #f39c12;
+    --purple: #9b59b6;
+    --text: #e0e4f0;
+    --muted: #6b7399;
+    --font: 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; }
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 14px 24px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header h1 span { color: var(--accent); }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    background: var(--surface2); border: 1px solid var(--border);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot.red { background: var(--red); }
+  .dot.yellow { background: var(--yellow); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .layout { display: grid; grid-template-columns: 300px 1fr 320px; gap: 0; height: calc(100vh - 53px); }
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .main { display: flex; flex-direction: column; overflow: hidden; }
+  .analysis-panel { background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+
+  .panel-header {
+    padding: 12px 16px; font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); flex-shrink: 0;
+  }
+  .panel-body { flex: 1; overflow-y: auto; padding: 12px; }
+  .panel-body::-webkit-scrollbar { width: 5px; }
+  .panel-body::-webkit-scrollbar-track { background: transparent; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .join-form { padding: 14px; border-bottom: 1px solid var(--border); }
+  .join-form textarea {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); padding: 10px 12px; font-size: 13px;
+    resize: none; height: 72px; font-family: var(--font); outline: none;
+  }
+  .join-form textarea:focus { border-color: var(--accent); }
+  .join-form textarea::placeholder { color: var(--muted); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+    border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: none; transition: all .15s; outline: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; width: 100%; justify-content: center; margin-top: 8px; }
+  .btn-primary:hover { background: #3a7be8; }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-danger { background: #3a1a1a; color: var(--red); border: 1px solid #5a2020; font-size: 11px; padding: 4px 10px; }
+  .btn-danger:hover { background: #5a2020; }
+
+  .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; border-bottom: 1px solid var(--border); }
+  .status-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+  .status-card .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .status-card .value { font-size: 13px; font-weight: 600; }
+  .ok { color: var(--green); }
+  .err { color: var(--red); }
+
+  .meeting-item {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 8px; cursor: pointer; transition: border .15s;
+  }
+  .meeting-item:hover, .meeting-item.active { border-color: var(--accent); }
+  .meeting-item .meeting-id { font-size: 12px; font-weight: 700; color: var(--accent); font-family: monospace; }
+  .meeting-item .meeting-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .badge {
+    display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px;
+    font-weight: 600; margin-left: 6px;
+  }
+  .badge-graph { background: #1a2a3a; color: var(--accent); }
+  .badge-active { background: #1a3a1a; color: var(--green); }
+  .badge-ended { background: #2a2020; color: var(--muted); }
+
+  .transcript-area { flex: 1; overflow-y: auto; padding: 16px; }
+  .transcript-area::-webkit-scrollbar { width: 5px; }
+  .transcript-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .seg { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; animation: fadeIn .3s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+  .seg-meta { min-width: 70px; text-align: right; }
+  .seg-time { font-size: 11px; color: var(--muted); font-family: monospace; }
+  .seg-lang { font-size: 10px; color: var(--accent); margin-top: 2px; }
+  .seg-src { font-size: 9px; color: var(--muted); margin-top: 2px; }
+  .seg-bubble {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 0 10px 10px 10px; padding: 8px 12px; flex: 1;
+    font-size: 14px; line-height: 1.5;
+  }
+  .seg-speaker { font-size: 10px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+  .seg-conf { font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; color: var(--muted); gap: 10px; text-align: center; padding: 40px;
+  }
+  .empty-state .icon { font-size: 40px; }
+  .empty-state p { font-size: 13px; line-height: 1.6; }
+
+  .logs-area { padding: 10px 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 11px; line-height: 1.6; color: #8fa0c0; }
+  .log-line { white-space: pre-wrap; word-break: break-all; }
+  .log-line.ERROR, .log-line.CRITICAL { color: #e74c3c; }
+  .log-line.WARNING { color: #f39c12; }
+  .log-line.INFO { color: #b0c4e8; }
+  .log-line.DEBUG { color: #5a6a8a; }
+
+  .tabs { display: flex; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 10px 18px; font-size: 12px; font-weight: 600; cursor: pointer;
+    border-bottom: 2px solid transparent; color: var(--muted); transition: all .15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { border-bottom-color: var(--accent); color: var(--accent); }
+  .tab-content { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+  .tab-content.active { display: flex; }
+
+  /* Analysis panel */
+  .analysis-section { margin-bottom: 16px; }
+  .analysis-section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+  }
+  .analysis-section-title .count {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0 6px; font-size: 10px; color: var(--muted);
+  }
+  .insight-card {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 10px; margin-bottom: 6px; font-size: 12px; line-height: 1.5;
+    animation: fadeIn .3s ease;
+  }
+  .insight-card .insight-speaker { font-weight: 700; color: var(--accent); font-size: 10px; }
+  .insight-card .insight-text { margin-top: 3px; }
+  .topic-tag {
+    display: inline-block; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2px 10px; font-size: 11px; margin: 2px 4px 2px 0;
+    color: var(--accent);
+  }
+  .topic-tag .topic-count { color: var(--muted); font-size: 9px; margin-left: 4px; }
+  .sentiment-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  .sentiment-bar .pos { background: var(--green); }
+  .sentiment-bar .neu { background: var(--muted); }
+  .sentiment-bar .neg { background: var(--red); }
+  .speaker-sentiment { margin-bottom: 8px; }
+  .speaker-sentiment .speaker-name { font-size: 11px; font-weight: 600; margin-bottom: 2px; }
+  .speaker-sentiment .sentiment-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); margin-top: 2px; }
+  .summary-box {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font-size: 12px; line-height: 1.6; color: var(--text);
+  }
+  .key-phrase {
+    display: inline-block; background: #1a2a3a; border: 1px solid #2a3a5a;
+    border-radius: 4px; padding: 1px 8px; font-size: 11px; margin: 2px 4px 2px 0; color: var(--text);
+  }
+
+  .refresh-badge { font-size: 10px; color: var(--muted); }
+  .toast {
+    position: fixed; bottom: 20px; right: 20px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px;
+    font-size: 13px; z-index: 999; animation: fadeIn .3s ease; max-width: 320px;
+  }
+  .toast.ok { border-color: var(--green); color: var(--green); }
+  .toast.err { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Meeting <span>Agent</span></h1>
+  <div class="pill"><div class="dot" id="hb-dot"></div><span id="hb-text">connecting...</span></div>
+  <div class="pill"><span>🔵 Graph</span><span id="graph-status">—</span></div>
+  <div class="pill"><span>🗣 Speech</span><span id="speech-status">—</span></div>
+  <div class="pill"><div class="dot" id="ws-dot"></div><span id="ws-text">WS: off</span></div>
+  <div style="flex:1"></div>
+  <span class="refresh-badge" id="refresh-ts">—</span>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="join-form">
+      <textarea id="meeting-url" placeholder="Paste Teams meeting URL here...&#10;https://teams.microsoft.com/l/meetup-join/..."></textarea>
+      <button class="btn btn-primary" id="join-btn" onclick="joinMeeting()">▶ Join Meeting</button>
+    </div>
+    <div class="status-grid">
+      <div class="status-card"><div class="label">Environment</div><div class="value" id="sc-env">—</div></div>
+      <div class="status-card"><div class="label">Active Meetings</div><div class="value" id="sc-meetings">0</div></div>
+      <div class="status-card"><div class="label">Errors (5 min)</div><div class="value" id="sc-errors">—</div></div>
+      <div class="status-card"><div class="label">WS Clients</div><div class="value" id="sc-ws">0</div></div>
+    </div>
+    <div class="panel-header">Meetings <span class="refresh-badge" id="meetings-count">0</span></div>
+    <div class="panel-body" id="meetings-list">
+      <div class="empty-state" style="height:auto;padding:20px"><p style="font-size:12px">No active meetings.<br>Paste a Teams link and click Join.</p></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('transcript')">📝 Live Transcript</div>
+      <div class="tab" onclick="switchTab('logs')">📋 Logs</div>
+    </div>
+    <div class="tab-content active" id="tab-transcript">
+      <div class="panel-header">
+        <span id="transcript-title">Select a meeting</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="seg-count" class="refresh-badge">0 segments</span>
+          <button class="btn btn-danger" id="leave-btn" onclick="leaveMeeting()" style="display:none">■ Leave</button>
+        </div>
+      </div>
+      <div class="transcript-area" id="transcript-area">
+        <div class="empty-state">
+          <div class="icon">🎙</div>
+          <p>Join a meeting to see live transcription.<br>Audio is streamed chunk by chunk → Azure Speech API.<br>Transcripts appear in pseudo real-time.</p>
+        </div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-logs">
+      <div class="panel-header">Live Logs <span class="refresh-badge">auto 5s</span></div>
+      <div class="panel-body" id="logs-area" style="padding:0">
+        <div class="logs-area" id="logs-content">Connecting...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYSIS PANEL -->
+  <div class="analysis-panel">
+    <div class="panel-header">⚡ Live Analysis <span class="refresh-badge" id="analysis-ts">—</span></div>
+    <div class="panel-body" id="analysis-body">
+      <div class="analysis-section">
+        <div class="analysis-section-title">📊 Running Summary</div>
+        <div class="summary-box" id="analysis-summary"><span style="color:var(--muted)">Waiting for transcript data...</span></div>
+      </div>
+      <div class="analysis-section">
+        <div class="analysis-section-title">🏷 Topics <span class="count" id="topics-count">0</span></div>
+        <div id="analysis-topics"><span style="color:var(--muted);font-size:12px">No topics yet</span></div>
+      </div>
+      <div class="analysis-section">
+        <div class="analysis-section-title">✅ Action Items <span class="count" id="actions-count">0</span></div>
+        <div id="analysis-actions"><span style="color:var(--muted);font-size:12px">No action items yet</span></div>
+      </div>
+      <div class="analysis-section">
+        <div class="analysis-section-title">🔷 Decisions <span class="count" id="decisions-count">0</span></div>
+        <div id="analysis-decisions"><span style="color:var(--muted);font-size:12px">No decisions yet</span></div>
+      </div>
+      <div class="analysis-section">
+        <div class="analysis-section-title">❓ Questions <span class="count" id="questions-count">0</span></div>
+        <div id="analysis-questions"><span style="color:var(--muted);font-size:12px">No questions yet</span></div>
+      </div>
+      <div class="analysis-section">
+        <div class="analysis-section-title">😊 Speaker Sentiment</div>
+        <div id="analysis-sentiment"><span style="color:var(--muted);font-size:12px">No speakers yet</span></div>
+      </div>
+      <div class="analysis-section">
+        <div class="analysis-section-title">🔑 Key Phrases <span class="count" id="phrases-count">0</span></div>
+        <div id="analysis-phrases"><span style="color:var(--muted);font-size:12px">No key phrases yet</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE = '';
+let activeMeetingId = null;
+let liveWs = null;
+let allSegments = [];
+let currentAnalysis = {};
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['transcript','logs'][i]===name));
+  document.querySelectorAll('.tab-content').forEach((c,i) => c.classList.toggle('active', ['transcript','logs'][i]===name));
+}
+
+function toast(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ─── WebSocket live stream ───────────────────────────────────
+function connectWs(meetingId) {
+  if (liveWs) { liveWs.close(); liveWs = null; }
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  liveWs = new WebSocket(`${proto}//${location.host}/ws/live/${meetingId}`);
+  liveWs.onopen = () => {
+    document.getElementById('ws-dot').className = 'dot green';
+    document.getElementById('ws-text').textContent = 'WS: live';
+  };
+  liveWs.onclose = () => {
+    document.getElementById('ws-dot').className = 'dot red';
+    document.getElementById('ws-text').textContent = 'WS: off';
+    if (activeMeetingId === meetingId) setTimeout(() => { if (activeMeetingId === meetingId) connectWs(meetingId); }, 3000);
+  };
+  liveWs.onerror = () => { document.getElementById('ws-dot').className = 'dot red'; };
+  liveWs.onmessage = (e) => { try { handleWsMsg(JSON.parse(e.data)); } catch(x){} };
+}
+
+function handleWsMsg(msg) {
+  switch(msg.type) {
+    case 'catchup':
+      allSegments = msg.segments || [];
+      renderTranscript(allSegments);
+      if (msg.analysis) updateAnalysis(msg.analysis);
+      break;
+    case 'transcript_segment':
+      allSegments.push(msg.segment);
+      appendSeg(msg.segment);
+      document.getElementById('seg-count').textContent = `${allSegments.length} segments`;
+      break;
+    case 'live_insight':
+      handleInsight(msg.insight);
+      break;
+    case 'analysis_snapshot':
+      updateAnalysis(msg.analysis);
+      document.getElementById('analysis-ts').textContent = new Date().toLocaleTimeString();
+      break;
+    case 'ping': break;
+  }
+}
+
+function handleInsight(i) {
+  if (i.kind === 'action_item') appendCard('analysis-actions','actions-count', i.content);
+  else if (i.kind === 'decision') appendCard('analysis-decisions','decisions-count', i.content);
+  else if (i.kind === 'question') appendCard('analysis-questions','questions-count', i.content);
+}
+
+function appendCard(contId, cntId, item) {
+  const el = document.getElementById(contId);
+  const cnt = parseInt(document.getElementById(cntId).textContent||'0');
+  document.getElementById(cntId).textContent = cnt+1;
+  if (el.querySelector('span[style]')) el.innerHTML = '';
+  el.insertAdjacentHTML('beforeend', `<div class="insight-card"><div class="insight-speaker">${esc(item.speaker||'Unknown')}</div><div class="insight-text">${esc(item.text)}</div></div>`);
+}
+
+// ─── Transcript ──────────────────────────────────────────────
+function segHtml(s) {
+  const t = s.timestamp ? new Date(s.timestamp*1000).toLocaleTimeString() : '';
+  const conf = s.confidence ? ` ${Math.round(s.confidence*100)}%` : '';
+  const speaker = s.speaker || s.speaker_id || '';
+  return `<div class="seg"><div class="seg-meta"><div class="seg-time">${t}</div><div class="seg-lang">${s.language||''}</div><div class="seg-src">${s.source||''}</div></div><div class="seg-bubble">${speaker?`<div class="seg-speaker">${esc(speaker)}</div>`:''}${esc(s.text||'')}${conf?`<div class="seg-conf">confidence: ${conf}</div>`:''}</div></div>`;
+}
+
+function renderTranscript(segs) {
+  const area = document.getElementById('transcript-area');
+  if (!segs.length) { area.innerHTML = `<div class="empty-state"><div class="icon">👂</div><p>Listening... audio → Azure Speech → transcript</p></div>`; return; }
+  area.innerHTML = segs.map(segHtml).join('');
+  area.scrollTop = area.scrollHeight;
+  document.getElementById('seg-count').textContent = `${segs.length} segments`;
+}
+
+function appendSeg(s) {
+  const area = document.getElementById('transcript-area');
+  const empty = area.querySelector('.empty-state');
+  if (empty) empty.remove();
+  const atBot = area.scrollHeight - area.scrollTop - area.clientHeight < 50;
+  area.insertAdjacentHTML('beforeend', segHtml(s));
+  if (atBot) area.scrollTop = area.scrollHeight;
+}
+
+// ─── Analysis panel ──────────────────────────────────────────
+function updateAnalysis(a) {
+  if (!a) return;
+  currentAnalysis = a;
+  document.getElementById('analysis-summary').innerHTML = a.running_summary ? esc(a.running_summary) : '<span style="color:var(--muted)">Building summary...</span>';
+
+  const topics = a.topics||[];
+  document.getElementById('topics-count').textContent = topics.length;
+  if (topics.length) document.getElementById('analysis-topics').innerHTML = topics.map(t => `<span class="topic-tag">${esc(t.topic)}<span class="topic-count">×${t.count}</span></span>`).join('');
+
+  const actions = a.action_items||[];
+  document.getElementById('actions-count').textContent = actions.length;
+  if (actions.length) document.getElementById('analysis-actions').innerHTML = actions.map(x => `<div class="insight-card"><div class="insight-speaker">${esc(x.speaker||'')}</div><div class="insight-text">${esc(x.text)}</div></div>`).join('');
+
+  const decisions = a.decisions||[];
+  document.getElementById('decisions-count').textContent = decisions.length;
+  if (decisions.length) document.getElementById('analysis-decisions').innerHTML = decisions.map(x => `<div class="insight-card"><div class="insight-speaker">${esc(x.speaker||'')}</div><div class="insight-text">${esc(x.text)}</div></div>`).join('');
+
+  const questions = a.questions||[];
+  document.getElementById('questions-count').textContent = questions.length;
+  if (questions.length) document.getElementById('analysis-questions').innerHTML = questions.map(x => `<div class="insight-card"><div class="insight-speaker">${esc(x.speaker||'')}</div><div class="insight-text">${esc(x.text)}</div></div>`).join('');
+
+  const sent = a.speaker_sentiment||{};
+  const speakers = Object.keys(sent);
+  if (speakers.length) {
+    document.getElementById('analysis-sentiment').innerHTML = speakers.map(sp => {
+      const s = sent[sp]; const tot = (s.positive||0)+(s.neutral||0)+(s.negative||0);
+      const pp = tot?(s.positive||0)/tot*100:0, np = tot?(s.neutral||0)/tot*100:0, negp = tot?(s.negative||0)/tot*100:0;
+      return `<div class="speaker-sentiment"><div class="speaker-name">${esc(sp)}</div><div class="sentiment-bar"><div class="pos" style="width:${pp}%"></div><div class="neu" style="width:${np}%"></div><div class="neg" style="width:${negp}%"></div></div><div class="sentiment-labels"><span style="color:var(--green)">+${s.positive||0}</span><span>~${s.neutral||0}</span><span style="color:var(--red)">-${s.negative||0}</span></div></div>`;
+    }).join('');
+  }
+
+  const phrases = a.key_phrases||[];
+  document.getElementById('phrases-count').textContent = phrases.length;
+  if (phrases.length) document.getElementById('analysis-phrases').innerHTML = phrases.map(p => `<span class="key-phrase">${esc(p)}</span>`).join('');
+}
+
+// ─── Status ──────────────────────────────────────────────────
+async function pollStatus() {
+  try {
+    const r = await fetch(BASE+'/debug/status'); const d = await r.json();
+    document.getElementById('hb-dot').className = 'dot green';
+    document.getElementById('hb-text').textContent = 'online';
+    const cl = d.clients||{};
+    document.getElementById('graph-status').textContent = cl.graph_client?'✓':'✗';
+    document.getElementById('graph-status').style.color = cl.graph_client?'var(--green)':'var(--red)';
+    const sp = d.speech_config||{};
+    document.getElementById('speech-status').textContent = sp.azure_speech_configured?'✓':'✗';
+    document.getElementById('speech-status').style.color = sp.azure_speech_configured?'var(--green)':'var(--red)';
+    document.getElementById('sc-env').textContent = d.environment||'—';
+    document.getElementById('sc-meetings').textContent = d.total_active_meetings||0;
+    const errs = d.recent_errors_5min??'—';
+    const errEl = document.getElementById('sc-errors');
+    errEl.textContent = errs; errEl.className = 'value '+(errs>0?'err':'ok');
+    document.getElementById('sc-ws').textContent = liveWs&&liveWs.readyState===1?'1':'0';
+    renderMeetings(d.meetings||{});
+    document.getElementById('refresh-ts').textContent = new Date().toLocaleTimeString();
+  } catch(e) {
+    document.getElementById('hb-dot').className = 'dot red';
+    document.getElementById('hb-text').textContent = 'offline';
+  }
+}
+
+function renderMeetings(meetings) {
+  const list = document.getElementById('meetings-list');
+  const ids = Object.keys(meetings);
+  document.getElementById('meetings-count').textContent = ids.length;
+  if (!ids.length) { list.innerHTML = `<div class="empty-state" style="height:auto;padding:20px"><p style="font-size:12px">No active meetings.</p></div>`; return; }
+  list.innerHTML = ids.map(id => {
+    const m = meetings[id]; const via=m.joined_via||'?'; const status=(m.status||'').toLowerCase();
+    const segs=m.transcript_segments||0; const dur=m.duration_s?`${Math.round(m.duration_s)}s`:'—';
+    return `<div class="meeting-item ${activeMeetingId===id?'active':''}" onclick="selectMeeting('${id}')"><div class="meeting-id">${id}<span class="badge badge-${via}">${via.toUpperCase()}</span><span class="badge badge-${status}">${status}</span></div><div class="meeting-meta">⏱ ${dur} • 🗣 ${segs} segs • ⚙ ${m.engine||'—'}${m.has_speech_client?' • <span style="color:var(--green)">🎙 live</span>':''}</div></div>`;
+  }).join('');
+}
+
+function selectMeeting(id) {
+  activeMeetingId = id; allSegments = [];
+  document.getElementById('transcript-title').textContent = `Meeting: ${id}`;
+  document.getElementById('leave-btn').style.display = 'inline-flex';
+  document.getElementById('transcript-area').innerHTML = `<div class="empty-state"><div class="icon" style="font-size:24px">⏳</div><p>Connecting live stream...</p></div>`;
+  connectWs(id);
+  pollTranscriptRest();
+  pollAnalysisRest();
+}
+
+// REST fallbacks
+async function pollTranscriptRest() {
+  if (!activeMeetingId) return;
+  if (liveWs&&liveWs.readyState===1&&allSegments.length>0) return;
+  try { const r=await fetch(`${BASE}/meetings/${activeMeetingId}/transcript`); if(!r.ok)return; const d=await r.json(); const segs=d.segments||[]; if(segs.length>allSegments.length){allSegments=segs;renderTranscript(allSegments);} }catch(e){}
+}
+async function pollAnalysisRest() {
+  if (!activeMeetingId) return;
+  try { const r=await fetch(`${BASE}/meetings/${activeMeetingId}/analysis`); if(!r.ok)return; const d=await r.json(); if(d.analysis) updateAnalysis(d.analysis); }catch(e){}
+}
+async function pollLogs() {
+  try { const r=await fetch(BASE+'/debug/logs?last_n=300&level=DEBUG'); const d=await r.json(); const entries=d.entries||[]; const el=document.getElementById('logs-content'); const la=document.getElementById('logs-area'); const atBot=la.scrollHeight-la.scrollTop-la.clientHeight<60;
+  el.innerHTML=entries.map(e=>{let line,level;if(typeof e==='string'){line=e;level=e.match(/\b(ERROR|WARNING|INFO|DEBUG|CRITICAL)\b/)?.[1]||'';}else{level=e.levelname||e.level||'';const ts=e.timestamp?new Date(e.timestamp*1000).toLocaleTimeString():'';line=`${ts} [${level}] ${e.name||''} — ${e.message||JSON.stringify(e)}`;}return`<div class="log-line ${level}">${esc(line)}</div>`;}).join('');
+  if(atBot) la.scrollTop=la.scrollHeight; }catch(e){}
+}
+
+// ─── Join / Leave ────────────────────────────────────────────
+async function joinMeeting() {
+  const url = document.getElementById('meeting-url').value.trim();
+  if (!url) { toast('Paste a Teams meeting URL first','err'); return; }
+  const btn = document.getElementById('join-btn'); btn.disabled=true; btn.textContent='⏳ Joining...';
+  try {
+    const r = await fetch(BASE+'/meetings/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({meeting_url:url})});
+    const d = await r.json(); if(!r.ok) throw new Error(d.detail||JSON.stringify(d));
+    toast(`Joined via ${d.joined_via||'?'} — ${d.meeting_id}`,'ok');
+    activeMeetingId = d.meeting_id; allSegments = [];
+    document.getElementById('transcript-title').textContent = `Meeting: ${d.meeting_id}`;
+    document.getElementById('leave-btn').style.display = 'inline-flex';
+    document.getElementById('meeting-url').value = '';
+    switchTab('transcript'); connectWs(d.meeting_id); await pollStatus();
+  } catch(e) { toast(`Join failed: ${e.message}`,'err'); }
+  finally { btn.disabled=false; btn.textContent='▶ Join Meeting'; }
+}
+
+async function leaveMeeting() {
+  if (!activeMeetingId) return;
+  try {
+    await fetch(`${BASE}/meetings/${activeMeetingId}/leave`,{method:'POST'});
+    toast(`Left ${activeMeetingId}`,'ok');
+    if(liveWs){liveWs.close();liveWs=null;}
+    activeMeetingId=null; allSegments=[];
+    document.getElementById('transcript-title').textContent='Select a meeting';
+    document.getElementById('leave-btn').style.display='none';
+    document.getElementById('transcript-area').innerHTML=`<div class="empty-state"><div class="icon">🎙</div><p>Meeting ended.</p></div>`;
+    document.getElementById('ws-dot').className='dot';document.getElementById('ws-text').textContent='WS: off';
+    await pollStatus();
+  } catch(e) { toast(`Leave failed: ${e.message}`,'err'); }
+}
+
+document.getElementById('meeting-url').addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();joinMeeting();} });
+
+// ─── Main loop ───────────────────────────────────────────────
+async function tick() { await pollStatus(); await pollLogs(); if(activeMeetingId){await pollTranscriptRest(); await pollAnalysisRest();} }
+tick(); setInterval(tick, 5000);
+</script>
+</body>
+</html>
