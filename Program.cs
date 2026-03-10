@@ -1,99 +1,144 @@
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using TeamsBot;
 using TeamsBot.Bot;
-using TeamsBot.Media;
 using TeamsBot.Meetings;
 using TeamsBot.Transcription;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Configuration overrides from environment variables ────────────────────────
-// NSSM injects each env var; they take precedence over appsettings.json.
+// Configuration
 builder.Configuration.AddEnvironmentVariables();
 
-// ── Services ──────────────────────────────────────────────────────────────────
-
-// Singletons that live for the process lifetime
+// Services
 builder.Services.AddSingleton<MeetingStore>();
 builder.Services.AddSingleton<SpeechTranscriber>();
 builder.Services.AddSingleton<GraphCallsService>();
-builder.Services.AddSingleton<MediaPlatformService>();
 
-// Bot Framework
 builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
 builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
 builder.Services.AddTransient<IBot, TeamsActivityBot>();
 
-// HttpClient factory — used by GraphCallsService
 builder.Services.AddHttpClient("Graph");
 
-// Controllers (BotController, CallsController, MeetingsController)
 builder.Services.AddControllers();
 
-// ── Build app ─────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-// ── Initialize media platform BEFORE accepting any requests ───────────────────
-var mediaPlatform = app.Services.GetRequiredService<MediaPlatformService>();
-await mediaPlatform.InitializeAsync();
+// RMP media platform init skipped — requires .NET-Framework-only SDK.
+// See Media/ for the implementation when targeting net48.
 
-// ── Middleware ────────────────────────────────────────────────────────────────
-app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(30) });
-app.UseStaticFiles(); // serves wwwroot/dashboard.html etc.
+// Middleware
+app.UseWebSockets(new WebSocketOptions
+{
+    KeepAliveInterval = TimeSpan.FromSeconds(30)
+});
 
-// ── Routes ────────────────────────────────────────────────────────────────────
+app.UseStaticFiles();
+
 app.MapControllers();
 
 // Health check
-app.MapGet("/health", () => Results.Ok(new
+app.MapGet("/health", (IHostEnvironment env) =>
 {
-    status      = "healthy",
-    version     = "2.0.0",
-    runtime     = "dotnet8",
-    environment = builder.Environment.EnvironmentName,
-}));
+    return Results.Ok(new
+    {
+        status = "healthy",
+        version = "2.0.0",
+        runtime = ".NET 8",
+        environment = env.EnvironmentName
+    });
+});
 
-// Dashboard — serves wwwroot/dashboard.html
-app.MapGet("/dashboard", async context =>
+// Dashboard
+app.MapGet("/dashboard", async (HttpContext context) =>
 {
-    var file = Path.Combine(app.Environment.WebRootPath, "dashboard.html");
+    var webRoot = app.Environment.WebRootPath;
+
+    if (string.IsNullOrWhiteSpace(webRoot))
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await context.Response.WriteAsync("WebRootPath is not configured.");
+        return;
+    }
+
+    var file = Path.Combine(webRoot, "dashboard.html");
+
     if (!File.Exists(file))
     {
-        context.Response.StatusCode = 404;
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
         await context.Response.WriteAsync("dashboard.html not found in wwwroot/");
         return;
     }
+
     context.Response.ContentType = "text/html; charset=utf-8";
     await context.Response.SendFileAsync(file);
 });
 
-// WebSocket — live transcript push to dashboard
-// Path: /ws/live/{meetingId}
-app.Map("/ws/live/{meetingId}", async context =>
+// WebSocket endpoint
+app.Map("/ws/live/{meetingId}", async (HttpContext context) =>
 {
     if (!context.WebSockets.IsWebSocketRequest)
     {
-        context.Response.StatusCode = 400;
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
         await context.Response.WriteAsync("WebSocket connection required");
         return;
     }
 
-    var meetingId = context.Request.RouteValues["meetingId"]?.ToString() ?? "";
-    var store     = context.RequestServices.GetRequiredService<MeetingStore>();
-    var ws        = await context.WebSockets.AcceptWebSocketAsync();
+    var meetingId = context.Request.RouteValues["meetingId"]?.ToString();
 
-    await store.HandleWebSocketAsync(meetingId, ws, context.RequestAborted);
+    if (string.IsNullOrWhiteSpace(meetingId))
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        await context.Response.WriteAsync("meetingId is required");
+        return;
+    }
+
+    var store = context.RequestServices.GetRequiredService<MeetingStore>();
+    var socket = await context.WebSockets.AcceptWebSocketAsync();
+
+    await store.HandleWebSocketAsync(meetingId, socket, context.RequestAborted);
 });
 
-// ── Debug status endpoint ─────────────────────────────────────────────────────
-app.MapGet("/debug/status", (MeetingStore store, MediaPlatformService _) => Results.Ok(new
+// Debug status
+app.MapGet("/debug/status", (MeetingStore store, IConfiguration config, IHostEnvironment env) =>
 {
-    time_utc        = DateTime.UtcNow.ToString("u"),
-    active_meetings = store.GetAllMeetings(),
-}));
+    var allMeetings = store.GetAllMeetings();
+    var meetingsDict = allMeetings.ToDictionary(
+        m => m.MeetingId,
+        m => new
+        {
+            joined_via          = "graph",
+            status              = m.Status,
+            transcript_segments = m.SegmentCount,
+            duration_s          = (DateTime.UtcNow - m.StartedAt).TotalSeconds,
+            engine              = "speech",
+            has_speech_client   = false
+        });
+    return Results.Ok(new
+    {
+        time_utc              = DateTime.UtcNow.ToString("u"),
+        environment           = env.EnvironmentName,
+        total_active_meetings = allMeetings.Count(m => m.Status is "active" or "joining"),
+        recent_errors_5min    = 0,
+        clients               = new { graph_client = true },
+        speech_config         = new { azure_speech_configured = !string.IsNullOrEmpty(config["AzureSpeechKey"]) },
+        meetings              = meetingsDict
+    });
+});
 
-app.Logger.LogInformation("Teams Bot starting up — {Env}", builder.Environment.EnvironmentName);
+// Debug logs
+app.MapGet("/debug/logs", () =>
+{
+    return Results.Ok(new { entries = Array.Empty<object>() });
+});
 
-app.Run();
+app.Logger.LogInformation("Teams Bot starting up — {Env}", app.Environment.EnvironmentName);
+
+await app.RunAsync();

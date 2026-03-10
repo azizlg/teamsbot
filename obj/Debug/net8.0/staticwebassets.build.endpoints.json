@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "ManifestType": "Build",
+  "Endpoints": [
+    {
+      "Route": "dashboard.html",
+      "AssetFile": "dashboard.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "29813"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"+hUKXCbcQoyiuuQOkBWq//8w0TnayjWrS+QFt61JzRQ=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Mar 2026 21:04:31 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-+hUKXCbcQoyiuuQOkBWq//8w0TnayjWrS+QFt61JzRQ="
+        }
+      ]
+    },
+    {
+      "Route": "dashboard.mkux9qow9a.html",
+      "AssetFile": "dashboard.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "29813"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"+hUKXCbcQoyiuuQOkBWq//8w0TnayjWrS+QFt61JzRQ=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Mar 2026 21:04:31 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "mkux9qow9a"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-+hUKXCbcQoyiuuQOkBWq//8w0TnayjWrS+QFt61JzRQ="
+        },
+        {
+          "Name": "label",
+          "Value": "dashboard.html"
+        }
+      ]
+    }
+  ]
+}

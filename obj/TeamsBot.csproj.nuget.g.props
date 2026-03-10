@@ -15,7 +15,4 @@
   <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <Import Project="$(NuGetPackageRoot)microsoft.cognitiveservices.speech\1.42.0\build\Microsoft.CognitiveServices.Speech.props" Condition="Exists('$(NuGetPackageRoot)microsoft.cognitiveservices.speech\1.42.0\build\Microsoft.CognitiveServices.Speech.props')" />
   </ImportGroup>
-  <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
-    <PkgMicrosoft_Skype_Bots_Media Condition=" '$(PkgMicrosoft_Skype_Bots_Media)' == '' ">C:\Users\rrrr\.nuget\packages\microsoft.skype.bots.media\1.20.0.348-alpha</PkgMicrosoft_Skype_Bots_Media>
-  </PropertyGroup>
 </Project>

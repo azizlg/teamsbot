@@ -1,3 +1,6 @@
+using System;
+using System.Text.Json.Serialization;
+
 namespace TeamsBot.Meetings;
 
 /// <summary>A single recognized speech segment from a meeting.</summary>
@@ -21,4 +24,6 @@ public sealed record MeetingInfo(
 );
 
 /// <summary>Request body for POST /meetings/join.</summary>
-public sealed record JoinMeetingRequest(string MeetingUrl, string? MeetingId);
+public sealed record JoinMeetingRequest(
+    [property: JsonPropertyName("meeting_url")] string  MeetingUrl,
+    [property: JsonPropertyName("meeting_id")]  string? MeetingId);

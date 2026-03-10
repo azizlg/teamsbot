@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.Graph.Communications.Calls.Media;
+using Microsoft.Extensions.Logging;
 using TeamsBot.Transcription;
 
 namespace TeamsBot.Media;
@@ -87,11 +90,18 @@ public sealed class RealTimeMediaSession : IMediaSession
 
     // ── IMediaSession lifecycle ───────────────────────────────────────────────
 
-    void IMediaSession.Initialize() =>
+    void IMediaSession.Initialize()
+    {
+        // Start the Azure Speech SDK recognizer BEFORE audio starts flowing.
+        _transcriber.StartSession(_meetingId);
         _logger.LogInformation("[{MeetingId}] Media session initialized — audio flowing", _meetingId);
+    }
 
-    void IMediaSession.Shutdown() =>
+    void IMediaSession.Shutdown()
+    {
+        _ = _transcriber.StopSessionAsync(_meetingId);
         _logger.LogInformation("[{MeetingId}] Media session shutting down", _meetingId);
+    }
 
     public void Dispose()
     {

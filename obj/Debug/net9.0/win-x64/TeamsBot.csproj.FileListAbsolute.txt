@@ -1,0 +1,8 @@
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net9.0\win-x64\TeamsBot.csproj.AssemblyReference.cache
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net9.0\win-x64\TeamsBot.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net9.0\win-x64\TeamsBot.AssemblyInfoInputs.cache
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net9.0\win-x64\TeamsBot.AssemblyInfo.cs
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net9.0\win-x64\TeamsBot.csproj.CoreCompileInputs.cache
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net9.0\win-x64\TeamsBot.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net9.0\win-x64\TeamsBot.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net9.0\win-x64\TeamsBot.sourcelink.json

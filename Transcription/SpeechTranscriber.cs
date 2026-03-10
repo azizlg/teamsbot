@@ -1,6 +1,10 @@
+using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using TeamsBot.Meetings;
 
 namespace TeamsBot.Transcription;
@@ -57,7 +61,7 @@ public sealed class SpeechTranscriber : IAsyncDisposable
         // 16 kHz / 16-bit / mono — MUST match what the RMP SDK delivers
         // (verified at runtime in RealTimeMediaSession.OnAudioMediaReceived)
         var pushStream  = AudioInputStream.CreatePushStream(
-            AudioStreamFormat.GetWaveFormatPCM(sampleRate: 16000, bitsPerSample: 16, channels: 1));
+            AudioStreamFormat.GetWaveFormatPCM(16000, 16, 1));
         var audioConfig = AudioConfig.FromStreamInput(pushStream);
         var recognizer  = new SpeechRecognizer(speechConfig, audioConfig);
 

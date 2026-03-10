@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using TeamsBot.Bot;
-using TeamsBot.Media;
 using TeamsBot.Meetings;
 using TeamsBot.Transcription;
 
@@ -15,7 +16,6 @@ namespace TeamsBot.Controllers;
 public sealed class MeetingsController : ControllerBase
 {
     private readonly GraphCallsService _graph;
-    private readonly MediaPlatformService _media;
     private readonly SpeechTranscriber _transcriber;
     private readonly MeetingStore _store;
     private readonly IConfiguration _config;
@@ -24,7 +24,6 @@ public sealed class MeetingsController : ControllerBase
 
     public MeetingsController(
         GraphCallsService graph,
-        MediaPlatformService media,
         SpeechTranscriber transcriber,
         MeetingStore store,
         IConfiguration config,
@@ -32,7 +31,6 @@ public sealed class MeetingsController : ControllerBase
         ILogger<MeetingsController> logger)
     {
         _graph       = graph;
-        _media       = media;
         _transcriber = transcriber;
         _store       = store;
         _config      = config;
@@ -60,11 +58,12 @@ public sealed class MeetingsController : ControllerBase
         {
             var callbackUri = _config["TunnelUrl"]!.TrimEnd('/');
 
-            var (_, blob) = _media.CreateMediaSession(meetingId, _transcriber, _loggerFactory);
+            // serviceHostedMediaConfig — Graph manages the media server.
+            var blob = string.Empty;
 
             _store.StartMeeting(meetingId, req.MeetingUrl);
 
-            var callId = await _graph.JoinMeetingAsync(req.MeetingUrl, meetingId, blob, callbackUri, ct);
+            var callId = await _graph.JoinMeetingAsync(req.MeetingUrl, meetingId, blob, callbackUri, ct: ct);
 
             _store.UpdateMeetingStatus(meetingId, "joining", callId);
 
@@ -72,10 +71,11 @@ public sealed class MeetingsController : ControllerBase
 
             return Ok(new
             {
-                meetingId,
-                callId,
-                status      = "joining",
-                dashboardUrl = $"{callbackUri}/dashboard",
+                meeting_id    = meetingId,
+                call_id       = callId,
+                joined_via    = "graph",
+                status        = "joining",
+                dashboard_url = $"{callbackUri}/dashboard",
             });
         }
         catch (Exception ex)
@@ -117,9 +117,17 @@ public sealed class MeetingsController : ControllerBase
         var segments = _store.GetSegments(meetingId);
         return Ok(new
         {
-            meetingId,
-            totalSegments = segments.Count,
-            segments      = segments,
+            meeting_id     = meetingId,
+            total_segments = segments.Count,
+            segments       = segments.Select(s => new
+            {
+                text       = s.Text,
+                speaker    = s.SpeakerId,
+                language   = s.Language,
+                timestamp  = s.Timestamp,
+                confidence = s.Confidence,
+                source     = "speech"
+            })
         });
     }
 
@@ -139,5 +147,31 @@ public sealed class MeetingsController : ControllerBase
         return meeting is null
             ? NotFound(new { error = $"Meeting {meetingId} not found" })
             : Ok(meeting);
+    }
+
+    /// <summary>
+    /// GET /meetings/{id}/analysis — Analysis snapshot for the dashboard.
+    /// </summary>
+    [HttpGet("{meetingId}/analysis")]
+    public IActionResult GetAnalysis(string meetingId)
+    {
+        var meeting = _store.GetMeeting(meetingId);
+        if (meeting is null)
+            return NotFound(new { error = $"Meeting {meetingId} not found" });
+
+        return Ok(new
+        {
+            meeting_id = meetingId,
+            analysis   = new
+            {
+                running_summary   = (string?)null,
+                topics            = Array.Empty<object>(),
+                action_items      = Array.Empty<object>(),
+                decisions         = Array.Empty<object>(),
+                questions         = Array.Empty<object>(),
+                speaker_sentiment = new { },
+                key_phrases       = Array.Empty<string>()
+            }
+        });
     }
 }

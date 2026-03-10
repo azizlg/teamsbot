@@ -1,0 +1,125 @@
+{
+  "Version": 1,
+  "Hash": "9/NoH5Y37zb5KFPhlxQ8/MPS+28IhhfKTNO2ntaM350=",
+  "Source": "TeamsBot",
+  "BasePath": "_content/TeamsBot",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "TeamsBot\\wwwroot",
+      "Source": "TeamsBot",
+      "ContentRoot": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\wwwroot\\",
+      "BasePath": "_content/TeamsBot",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\wwwroot\\dashboard.html",
+      "SourceId": "TeamsBot",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\wwwroot\\",
+      "BasePath": "_content/TeamsBot",
+      "RelativePath": "dashboard#[.{fingerprint}]?.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "mkux9qow9a",
+      "Integrity": "+hUKXCbcQoyiuuQOkBWq//8w0TnayjWrS+QFt61JzRQ=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\dashboard.html"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "dashboard.html",
+      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\wwwroot\\dashboard.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "29813"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"+hUKXCbcQoyiuuQOkBWq//8w0TnayjWrS+QFt61JzRQ=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Mar 2026 21:04:31 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-+hUKXCbcQoyiuuQOkBWq//8w0TnayjWrS+QFt61JzRQ="
+        }
+      ]
+    },
+    {
+      "Route": "dashboard.mkux9qow9a.html",
+      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\wwwroot\\dashboard.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "29813"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"+hUKXCbcQoyiuuQOkBWq//8w0TnayjWrS+QFt61JzRQ=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 06 Mar 2026 21:04:31 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "mkux9qow9a"
+        },
+        {
+          "Name": "label",
+          "Value": "dashboard.html"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-+hUKXCbcQoyiuuQOkBWq//8w0TnayjWrS+QFt61JzRQ="
+        }
+      ]
+    }
+  ]
+}

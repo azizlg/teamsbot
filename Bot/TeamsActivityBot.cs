@@ -1,9 +1,11 @@
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Teams;
 using Microsoft.Bot.Schema;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using TeamsBot.Bot;
 using TeamsBot.Meetings;
-using TeamsBot.Media;
 using TeamsBot.Transcription;
 
 namespace TeamsBot.Bot;
@@ -19,7 +21,6 @@ public sealed class TeamsActivityBot : TeamsActivityHandler
             System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
     private readonly GraphCallsService _graph;
-    private readonly MediaPlatformService _media;
     private readonly SpeechTranscriber _transcriber;
     private readonly MeetingStore _store;
     private readonly IConfiguration _config;
@@ -28,7 +29,6 @@ public sealed class TeamsActivityBot : TeamsActivityHandler
 
     public TeamsActivityBot(
         GraphCallsService graph,
-        MediaPlatformService media,
         SpeechTranscriber transcriber,
         MeetingStore store,
         IConfiguration config,
@@ -36,7 +36,6 @@ public sealed class TeamsActivityBot : TeamsActivityHandler
         ILogger<TeamsActivityBot> logger)
     {
         _graph       = graph;
-        _media       = media;
         _transcriber = transcriber;
         _store       = store;
         _config      = config;
@@ -68,14 +67,20 @@ public sealed class TeamsActivityBot : TeamsActivityHandler
         {
             var callbackUri = _config["TunnelUrl"]!.TrimEnd('/');
 
-            // 1. Create RMP media session → generates the appHostedMediaConfig blob
-            var (mediaSession, blob) = _media.CreateMediaSession(meetingId, _transcriber, _loggerFactory);
+            // Joining with serviceHostedMediaConfig — Graph manages the media server.
+            // Real-time audio (and thus real-time transcription) requires the RMP SDK
+            // which only supports .NET Framework 4.x. To enable it, retarget to net48.
+            var blob = string.Empty; // unused with serviceHostedMediaConfig
+
+            // Extract organizer tenant from Teams channelData
+            var organizerTenant = (turnContext.Activity.ChannelData as JObject)
+                ?["tenant"]?["id"]?.ToString();
 
             // 2. Register meeting in store
             _store.StartMeeting(meetingId, joinUrl);
 
-            // 3. Join via Graph (appHostedMediaConfig with the RMP blob)
-            var callId = await _graph.JoinMeetingAsync(joinUrl, meetingId, blob, callbackUri, ct);
+            // 3. Join via Graph
+            var callId = await _graph.JoinMeetingAsync(joinUrl, meetingId, blob, callbackUri, organizerTenant, ct);
 
             _store.UpdateMeetingStatus(meetingId, "active", callId);
 

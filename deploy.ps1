@@ -1,134 +1,130 @@
-<#
+﻿<#
 .SYNOPSIS
-  Deploy the C# Teams Bot to the Azure VM and configure NSSM.
-
-.DESCRIPTION
-  1. Builds and publishes the .NET 8 project
-  2. Copies the output to C:\bot-dotnet on the VM via SSH/SCP
-  3. Removes the old Python TeamsBot service
-  4. Creates/updates the TeamsBotDotNet NSSM service
-  5. Opens port 8445 in Windows Firewall
-
-.REQUIREMENTS
-  - .NET 8 SDK installed locally
-  - ssh.exe and scp.exe on PATH (built-in on Win10+)
-  - NSSM already on the VM (already installed)
-  - Run from the TeamsBot\ directory (or adjust $ProjectDir)
+  Deploy the .NET Teams Bot to the Azure VM.
+  3 password prompts total (Ctrl+C to abort).
 #>
 param(
-    [string]$VmHost   = "40.114.142.12",
-    [string]$VmUser   = "azizadmin",
-    [string]$VmPass   = "BotAdmin@2026!",    # Used only for display hints; use SSH key in prod
-    [string]$VmDest   = "/C:/bot-dotnet",
+    [string]$VmHost     = "40.114.142.12",
+    [string]$VmUser     = "azizadmin",
     [string]$ProjectDir = $PSScriptRoot
 )
-
 $ErrorActionPreference = "Stop"
 
-Write-Host "=== Teams Bot .NET Deploy ===" -ForegroundColor Cyan
+$env:MICROSOFT_APP_ID        = "fec00466-c8a1-453d-9bc5-033b9212771b"
+$env:MICROSOFT_APP_PASSWORD  = "FYk8Q~aCabxJXZcDRpmPxi8yRfhfooUichkQpbcL"
+$env:MICROSOFT_APP_TENANT_ID = "95ea510f-498a-4089-af48-be9d9b9a2ccc"
+$env:AZURE_SPEECH_KEY        = "FFFoQXXkyo0W2a6DMvreuVuJPL1TgLM7ehsYfN8Csyt0VogQKIlQJQQJ99CCACYeBjFXJ3w3AAAYACOGc1Hp"
+$env:AZURE_SPEECH_REGION     = "eastus"
+$env:CERT_THUMBPRINT         = "9DF94ED45B981B0553B172618F2E8B6927B4E3FE"
 
-# ── 1. Build + publish ────────────────────────────────────────────────────────
-Write-Host "[1/5] Publishing .NET 8 release build..."
-$publishDir = Join-Path $env:TEMP "teamsbot-publish"
-if (Test-Path $publishDir) { Remove-Item $publishDir -Recurse -Force }
+Write-Host ""
+Write-Host "======================================================" -ForegroundColor Cyan
+Write-Host "  Teams Bot .NET Deployment  ->  ${VmUser}@${VmHost}" -ForegroundColor Cyan
+Write-Host "  Password needed 3 times." -ForegroundColor Yellow
+Write-Host "======================================================" -ForegroundColor Cyan
 
-dotnet publish $ProjectDir `
-    -c Release `
-    -r win-x64 `
-    --self-contained false `
-    -o $publishDir
+# 1. Publish -------------------------------------------------------------------
+Write-Host "`n=== [1/5] Publishing ===" -ForegroundColor Cyan
+$pub = Join-Path $env:TEMP "tb-pub"
+if (Test-Path $pub) { Remove-Item $pub -Recurse -Force }
+dotnet publish $ProjectDir -c Release -o $pub
+if ($LASTEXITCODE -ne 0) { Write-Host "Publish failed." -ForegroundColor Red; exit 1 }
 
-Write-Host "Published to: $publishDir" -ForegroundColor Green
+# Copy wwwroot if not already in publish output
+$wsrc = Join-Path $ProjectDir "wwwroot\dashboard.html"
+if (Test-Path $wsrc) {
+    $wdst = Join-Path $pub "wwwroot"; New-Item $wdst -ItemType Directory -Force | Out-Null
+    Copy-Item $wsrc (Join-Path $wdst "dashboard.html") -Force
+}
+Write-Host "Published to $pub" -ForegroundColor Green
 
-# ── 2. Copy dashboard.html into publish wwwroot ───────────────────────────────
-$dashSrc = Join-Path $ProjectDir "wwwroot\dashboard.html"
-$dashDst = Join-Path $publishDir "wwwroot\dashboard.html"
-if (Test-Path $dashSrc) {
-    New-Item (Join-Path $publishDir "wwwroot") -ItemType Directory -Force | Out-Null
-    Copy-Item $dashSrc $dashDst -Force
-    Write-Host "dashboard.html included" -ForegroundColor Green
-} else {
-    Write-Warning "wwwroot\dashboard.html not found — dashboard will be missing"
+# 2. Write remote setup script into publish dir --------------------------------
+$appId = $env:MICROSOFT_APP_ID; $appPw = $env:MICROSOFT_APP_PASSWORD
+$tid   = $env:MICROSOFT_APP_TENANT_ID; $sk = $env:AZURE_SPEECH_KEY
+$sr    = $env:AZURE_SPEECH_REGION; $ct = $env:CERT_THUMBPRINT
+
+@"
+`$n = "nssm.exe"
+& `$n stop   TeamsBot       confirm 2>`$null | Out-Null
+& `$n remove TeamsBot       confirm 2>`$null | Out-Null
+& `$n stop   TeamsBotDotNet confirm 2>`$null | Out-Null
+& `$n remove TeamsBotDotNet confirm 2>`$null | Out-Null
+Start-Sleep 2
+& `$n install TeamsBotDotNet "C:\bot-dotnet\TeamsBot.exe"
+& `$n set TeamsBotDotNet AppDirectory     "C:\bot-dotnet"
+& `$n set TeamsBotDotNet AppParameters    "--urls http://0.0.0.0:8000"
+& `$n set TeamsBotDotNet AppExit          Default Restart
+& `$n set TeamsBotDotNet AppRestartDelay  3000
+& `$n set TeamsBotDotNet AppStdout        "C:\bot-dotnet\logs\bot.log"
+& `$n set TeamsBotDotNet AppStderr        "C:\bot-dotnet\logs\bot-error.log"
+& `$n set TeamsBotDotNet AppRotateFiles   1
+& `$n set TeamsBotDotNet AppRotateSeconds 86400
+& `$n set TeamsBotDotNet Start            SERVICE_AUTO_START
+& `$n set TeamsBotDotNet DisplayName      "Teams Bot .NET"
+& `$n set TeamsBotDotNet AppEnvironmentExtra 'MicrosoftAppId=$appId' 'MicrosoftAppPassword=$appPw' 'MicrosoftAppTenantId=$tid' 'AzureSpeechKey=$sk' 'AzureSpeechRegion=$sr' 'TunnelUrl=https://teams-bot.westeurope.cloudapp.azure.com' 'MediaPlatform__ServiceFqdn=teams-bot.westeurope.cloudapp.azure.com' 'MediaPlatform__InstancePublicPort=8445' 'MediaPlatform__CertThumbprint=$ct'
+Write-Host "NSSM configured."
+if (-not (Get-NetFirewallRule -DisplayName "Teams Bot RMP" -ErrorAction SilentlyContinue)) {
+    New-NetFirewallRule -DisplayName "Teams Bot RMP" -Direction Inbound -Protocol TCP -LocalPort 8445 -Action Allow | Out-Null
+    Write-Host "Firewall rule created."
+} else { Write-Host "Firewall rule already exists." }
+& `$n start TeamsBotDotNet
+Start-Sleep 8
+`$svc = Get-Service TeamsBotDotNet -ErrorAction SilentlyContinue
+Write-Host "Service status: `$(`$svc.Status)"
+if (`$svc.Status -ne "Running") { Write-Host "ERROR: Service not running!"; exit 1 }
+Write-Host "SUCCESS: Service is RUNNING."
+"@ | Set-Content (Join-Path $pub "deploy-remote.ps1") -Encoding UTF8
+Write-Host "Remote script written." -ForegroundColor Green
+
+# 3. Stop old service + wipe (password 1) -------------------------------------
+Write-Host "`n=== [2/5] Stop old service + clear directory ===" -ForegroundColor Cyan
+Write-Host ">>> PASSWORD PROMPT 1 of 3 <<<" -ForegroundColor Yellow
+$stop = 'Stop-Service TeamsBotDotNet -Force -EA SilentlyContinue; Stop-Service TeamsBot -Force -EA SilentlyContinue; Start-Sleep 2; if (Test-Path C:\bot-dotnet){Remove-Item C:\bot-dotnet -Recurse -Force}; New-Item C:\bot-dotnet\logs -Force -ItemType Directory|Out-Null; Write-Host DONE'
+ssh "${VmUser}@${VmHost}" "powershell -NonInteractive -Command `"$stop`""
+if ($LASTEXITCODE -ne 0) { Write-Host "Warning: cleanup had issues (likely first deploy). Continuing." -ForegroundColor Yellow }
+Write-Host "VM directory ready." -ForegroundColor Green
+
+# 4. Zip + SCP single file (password 2) ---------------------------------------
+Write-Host "`n=== [3/5] Upload files (zip) ===" -ForegroundColor Cyan
+Write-Host ">>> PASSWORD PROMPT 2 of 3 <<<" -ForegroundColor Yellow
+$zip = Join-Path $env:TEMP "teamsbot.zip"
+if (Test-Path $zip) { Remove-Item $zip }
+Compress-Archive -Path "$pub\*" -DestinationPath $zip
+scp $zip "${VmUser}@${VmHost}:C:/teamsbot.zip"
+if ($LASTEXITCODE -ne 0) { Write-Host "SCP failed." -ForegroundColor Red; exit 1 }
+Write-Host "Zip uploaded." -ForegroundColor Green
+
+# 5. Unzip + NSSM + start (password 3) ----------------------------------------
+Write-Host "`n=== [4/5] Unzip + configure service + start ===" -ForegroundColor Cyan
+Write-Host ">>> PASSWORD PROMPT 3 of 3 <<<" -ForegroundColor Yellow
+$remote = 'Expand-Archive C:\teamsbot.zip -DestinationPath C:\bot-dotnet -Force; Remove-Item C:\teamsbot.zip; powershell -ExecutionPolicy Bypass -File C:\bot-dotnet\deploy-remote.ps1'
+ssh "${VmUser}@${VmHost}" "powershell -NonInteractive -Command `"$remote`""
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Remote setup failed. SSH in and check: type C:\bot-dotnet\logs\bot-error.log" -ForegroundColor Red
+    exit 1
 }
 
-# ── 3. Deploy to VM via SCP ───────────────────────────────────────────────────
-Write-Host "[2/5] Copying to VM $VmHost..."
-Write-Host "  This may prompt for SSH password: $VmPass"
-
-# Stop old service before overwriting files
-$stopCmd = "powershell -NonInteractive -Command `"& { " +
-    "Stop-Service TeamsBotDotNet -Force -ErrorAction SilentlyContinue; " +
-    "Stop-Service TeamsBot -Force -ErrorAction SilentlyContinue; " +
-    "if (Test-Path C:\bot-dotnet) { Remove-Item C:\bot-dotnet -Recurse -Force } " +
-    "}`""
-ssh "${VmUser}@${VmHost}" $stopCmd
-
-# SCP the published output
-scp -r "${publishDir}\*" "${VmUser}@${VmHost}:C:/bot-dotnet/"
-Write-Host "Files copied" -ForegroundColor Green
-
-# ── 4. Configure NSSM service on VM ──────────────────────────────────────────
-Write-Host "[3/5] Configuring NSSM service on VM..."
-
-$nssmCmds = @"
-& {
-    \$nssm = 'C:\ProgramData\chocolatey\lib\NSSM\tools\nssm.exe'
-
-    # Remove old Python service
-    & \$nssm stop  TeamsBot 2>`$null
-    & \$nssm remove TeamsBot confirm 2>`$null
-
-    # Install .NET service
-    & \$nssm install TeamsBotDotNet 'C:\Program Files\dotnet\dotnet.exe'
-    & \$nssm set TeamsBotDotNet AppParameters 'C:\bot-dotnet\TeamsBot.dll --urls http://0.0.0.0:8000'
-    & \$nssm set TeamsBotDotNet AppDirectory   'C:\bot-dotnet'
-    & \$nssm set TeamsBotDotNet AppExit Default Restart
-    & \$nssm set TeamsBotDotNet AppStdout 'C:\bot-dotnet\logs\bot.log'
-    & \$nssm set TeamsBotDotNet AppStderr 'C:\bot-dotnet\logs\bot-error.log'
-    & \$nssm set TeamsBotDotNet Start SERVICE_AUTO_START
-    & \$nssm set TeamsBotDotNet DisplayName 'Teams Bot (.NET)'
-
-    # Environment variables (read from .env values)
-    & \$nssm set TeamsBotDotNet AppEnvironmentExtra ':MicrosoftAppId=$env:MICROSOFT_APP_ID'
-    & \$nssm set TeamsBotDotNet AppEnvironmentExtra '+MicrosoftAppPassword=$env:MICROSOFT_APP_PASSWORD'
-    & \$nssm set TeamsBotDotNet AppEnvironmentExtra '+MicrosoftAppTenantId=$env:MICROSOFT_APP_TENANT_ID'
-    & \$nssm set TeamsBotDotNet AppEnvironmentExtra '+AzureSpeechKey=$env:AZURE_SPEECH_KEY'
-    & \$nssm set TeamsBotDotNet AppEnvironmentExtra '+AzureSpeechRegion=$env:AZURE_SPEECH_REGION'
-    & \$nssm set TeamsBotDotNet AppEnvironmentExtra '+TunnelUrl=https://teams-bot.westeurope.cloudapp.azure.com'
-    & \$nssm set TeamsBotDotNet AppEnvironmentExtra '+MediaPlatform__ServiceFqdn=teams-bot.westeurope.cloudapp.azure.com'
-    & \$nssm set TeamsBotDotNet AppEnvironmentExtra '+MediaPlatform__CertThumbprint=$env:CERT_THUMBPRINT'
-    & \$nssm set TeamsBotDotNet AppEnvironmentExtra '+MediaPlatform__InstancePublicPort=8445'
-
-    New-Item 'C:\bot-dotnet\logs' -ItemType Directory -Force | Out-Null
-    Write-Host 'NSSM configured'
+# 6. Health check --------------------------------------------------------------
+Write-Host "`n=== [5/5] Health check ===" -ForegroundColor Cyan
+Write-Host "Waiting 12 seconds for startup..." -ForegroundColor Yellow
+Start-Sleep 12
+try {
+    $h = Invoke-RestMethod -Uri "https://teams-bot.westeurope.cloudapp.azure.com/health" -TimeoutSec 20
+    Write-Host "Health: $($h | ConvertTo-Json -Compress)" -ForegroundColor Green
+} catch {
+    Write-Host "Health check failed: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host "The service may still be starting. Try again in 30 seconds." -ForegroundColor Yellow
 }
-"@
-
-ssh "${VmUser}@${VmHost}" "powershell -NonInteractive -Command `"$nssmCmds`""
-
-# ── 5. Open firewall port 8445 ────────────────────────────────────────────────
-Write-Host "[4/5] Opening Windows Firewall port 8445 (RMP media)..."
-
-$fwCmd = "powershell -NonInteractive -Command `"" +
-    "New-NetFirewallRule -DisplayName 'Teams Bot RMP Media' " +
-    "-Direction Inbound -Protocol TCP -LocalPort 8445 " +
-    "-Action Allow -ErrorAction SilentlyContinue`""
-ssh "${VmUser}@${VmHost}" $fwCmd
-
-# ── 6. Start service ──────────────────────────────────────────────────────────
-Write-Host "[5/5] Starting TeamsBotDotNet service..."
-
-$startCmd = "powershell -NonInteractive -Command `"Start-Service TeamsBotDotNet`""
-ssh "${VmUser}@${VmHost}" $startCmd
 
 Write-Host ""
-Write-Host "✅ Deploy complete!" -ForegroundColor Green
+Write-Host "=========================================================" -ForegroundColor Green
+Write-Host "  Deployment complete!" -ForegroundColor Green
+Write-Host "=========================================================" -ForegroundColor Green
+Write-Host "  Health    : https://teams-bot.westeurope.cloudapp.azure.com/health"
+Write-Host "  Dashboard : https://teams-bot.westeurope.cloudapp.azure.com/dashboard"
+Write-Host "  Logs      : ssh ${VmUser}@${VmHost}  then:  type C:\bot-dotnet\logs\bot-error.log"
 Write-Host ""
-Write-Host "Dashboard: https://teams-bot.westeurope.cloudapp.azure.com/dashboard"
-Write-Host "Health:    https://teams-bot.westeurope.cloudapp.azure.com/health"
-Write-Host ""
-Write-Host "⚠️  Don't forget:"
-Write-Host "  1. Run setup-cert.ps1 on the VM first (if not done yet)"
-Write-Host "  2. Set CERT_THUMBPRINT env var before running this script"
-Write-Host "  3. Open port 8445 in Azure NSG (Network Security Group)"
-Write-Host "     Azure Portal → VM → Networking → Add inbound port 8445 TCP"
+Write-Host "MANUAL STEPS STILL REQUIRED:" -ForegroundColor Yellow
+Write-Host "  1. Azure Portal > VM > Networking > Add inbound rule: TCP port 8445"
+Write-Host "  2. Azure Portal > Bot Services > your bot > Configuration >"
+Write-Host "     Messaging endpoint: https://teams-bot.westeurope.cloudapp.azure.com/api/messages"

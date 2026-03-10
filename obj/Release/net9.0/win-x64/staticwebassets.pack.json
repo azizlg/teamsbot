@@ -1,0 +1,29 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\wwwroot\\dashboard.html",
+      "PackagePath": "staticwebassets\\dashboard.html"
+    },
+    {
+      "Id": "obj\\Release\\net9.0\\win-x64\\staticwebassets\\msbuild.TeamsBot.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
+    },
+    {
+      "Id": "obj\\Release\\net9.0\\win-x64\\staticwebassets\\msbuild.TeamsBot.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Release\\net9.0\\win-x64\\staticwebassets\\msbuild.build.TeamsBot.props",
+      "PackagePath": "build\\TeamsBot.props"
+    },
+    {
+      "Id": "obj\\Release\\net9.0\\win-x64\\staticwebassets\\msbuild.buildMultiTargeting.TeamsBot.props",
+      "PackagePath": "buildMultiTargeting\\TeamsBot.props"
+    },
+    {
+      "Id": "obj\\Release\\net9.0\\win-x64\\staticwebassets\\msbuild.buildTransitive.TeamsBot.props",
+      "PackagePath": "buildTransitive\\TeamsBot.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

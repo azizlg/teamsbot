@@ -110,11 +110,25 @@ public sealed class MeetingStore
         bag.Add(ws);
         _logger.LogInformation("WebSocket connected for meeting {MeetingId}", meetingId);
 
-        // Send existing segments on connect (catch-up)
-        foreach (var seg in GetSegments(meetingId))
+        // Send a single catch-up message containing all existing segments
+        var existing = GetSegments(meetingId);
+        var catchupJson = JsonSerializer.Serialize(new
         {
-            await SendSegmentAsync(ws, seg, ct);
-        }
+            type = "catchup",
+            segments = existing.Select(s => new
+            {
+                text       = s.Text,
+                speaker    = s.SpeakerId,
+                language   = s.Language,
+                timestamp  = s.Timestamp,
+                confidence = s.Confidence,
+                source     = "speech"
+            }).ToList(),
+            analysis = new { }
+        });
+        var catchupBytes = Encoding.UTF8.GetBytes(catchupJson);
+        if (ws.State == WebSocketState.Open)
+            await ws.SendAsync(catchupBytes, WebSocketMessageType.Text, endOfMessage: true, ct);
 
         // Keep connection alive until client disconnects
         var buffer = new byte[1024];
@@ -172,13 +186,16 @@ public sealed class MeetingStore
     {
         var json = JsonSerializer.Serialize(new
         {
-            type       = "transcript",
-            meetingId  = seg.MeetingId,
-            text       = seg.Text,
-            language   = seg.Language,
-            timestamp  = seg.Timestamp,
-            confidence = seg.Confidence,
-            speakerId  = seg.SpeakerId,
+            type = "transcript_segment",
+            segment = new
+            {
+                text       = seg.Text,
+                speaker    = seg.SpeakerId,
+                language   = seg.Language,
+                timestamp  = seg.Timestamp,
+                confidence = seg.Confidence,
+                source     = "speech"
+            }
         });
         var bytes = Encoding.UTF8.GetBytes(json);
         await ws.SendAsync(bytes, WebSocketMessageType.Text, endOfMessage: true, ct);

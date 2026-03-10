@@ -5,3 +5,4 @@ C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.Ge
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.AssemblyInfoInputs.cache
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.AssemblyInfo.cs
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.csproj.CoreCompileInputs.cache
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Debug\net48\TeamsBot.sourcelink.json
