@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.Skype.Bots.Media;
 
 namespace TeamsBot.Media;
@@ -14,6 +15,7 @@ public sealed class RealTimeMediaSession : IDisposable
     private readonly AudioSocket _audioSocket;
     private readonly SpeechTranscriber _transcriber;
     private long _frameCount;
+    private int _speechStarted; // 0 = not started, 1 = started (interlocked flag)
 
     public RealTimeMediaSession(
         string meetingId,
@@ -29,8 +31,9 @@ public sealed class RealTimeMediaSession : IDisposable
 
     public void Initialize()
     {
-        _transcriber.StartSession(_meetingId);
-        Console.WriteLine($"[{_meetingId}] Media session initialized — audio flowing");
+        // Speech session is now started lazily on first audio frame to avoid
+        // loading Speech SDK native DLLs before the call is established.
+        Console.WriteLine($"[{_meetingId}] Media session ready — waiting for audio");
     }
 
     public void Shutdown()
@@ -48,7 +51,23 @@ public sealed class RealTimeMediaSession : IDisposable
 
             // Log first frame and then every 500 frames (~10s at 50fps)
             if (_frameCount == 1)
+            {
                 Console.WriteLine($"[{_meetingId}] *** First audio frame received — format: {buffer.AudioFormat}, length: {buffer.Length} bytes");
+
+                // Lazy-init speech recognizer on first audio frame
+                if (Interlocked.CompareExchange(ref _speechStarted, 1, 0) == 0)
+                {
+                    try
+                    {
+                        _transcriber.StartSession(_meetingId);
+                        Console.WriteLine($"[{_meetingId}] Speech recognizer started");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[{_meetingId}] SPEECH INIT ERROR: {ex}");
+                    }
+                }
+            }
             else if (_frameCount % 500 == 0)
                 Console.WriteLine($"[{_meetingId}] Audio frames: {_frameCount} received so far");
 

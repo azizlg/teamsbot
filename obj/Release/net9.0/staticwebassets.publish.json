@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "snRYlSwD/lyFMJT7pL5icol2LR7nhwNjbAnzwZtMu20=",
+  "Hash": "JMBku3GEMO1aKi+VrOG6tDOqiavzJcXf2oFys3KJML8=",
   "Source": "TeamsBot",
   "BasePath": "_content/TeamsBot",
   "Mode": "Default",
@@ -17,12 +17,12 @@
   ],
   "Assets": [
     {
-      "Identity": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\kzm2oyly43-9letlb1gxb.gz",
+      "Identity": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\kzm2oyly43-h62nxz0xre.gz",
       "SourceId": "TeamsBot",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\",
       "BasePath": "_content/TeamsBot",
-      "RelativePath": "dashboard#[.{fingerprint=9letlb1gxb}]?.html.gz",
+      "RelativePath": "dashboard#[.{fingerprint=h62nxz0xre}]?.html.gz",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Alternative",
@@ -31,19 +31,19 @@
       "RelatedAsset": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\wwwroot\\dashboard.html",
       "AssetTraitName": "Content-Encoding",
       "AssetTraitValue": "gzip",
-      "Fingerprint": "qdpf91kf87",
-      "Integrity": "woQcEm/hq1qMq0nuhuqGEBOyKKAafz75WWEwoat33Lc=",
+      "Fingerprint": "2fpsoqz98d",
+      "Integrity": "rp/roaObbdA/XqvsZP9wtbgOP/e+MMjbFpLOMTi9QcA=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\wwwroot\\dashboard.html"
     },
     {
-      "Identity": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\publish\\kzm2oyly43-9letlb1gxb.br",
+      "Identity": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\publish\\kzm2oyly43-h62nxz0xre.br",
       "SourceId": "TeamsBot",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\publish\\",
       "BasePath": "_content/TeamsBot",
-      "RelativePath": "dashboard#[.{fingerprint=9letlb1gxb}]?.html.br",
+      "RelativePath": "dashboard#[.{fingerprint=h62nxz0xre}]?.html.br",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Alternative",
@@ -52,8 +52,8 @@
       "RelatedAsset": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\wwwroot\\dashboard.html",
       "AssetTraitName": "Content-Encoding",
       "AssetTraitValue": "br",
-      "Fingerprint": "sq2v1u9wis",
-      "Integrity": "pIhA+NGr5NF+sQAbwpRbD06RyzdrsncDtvOIwHHbQ9g=",
+      "Fingerprint": "k86o239284",
+      "Integrity": "lHNwAQlDP0dA/ADFcQHw5AufoSQ0cmjPoJfJmWjpzGU=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\wwwroot\\dashboard.html"
@@ -73,8 +73,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "9letlb1gxb",
-      "Integrity": "47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0=",
+      "Fingerprint": "h62nxz0xre",
+      "Integrity": "yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\dashboard.html"
@@ -82,13 +82,13 @@
   ],
   "Endpoints": [
     {
-      "Route": "dashboard.9letlb1gxb.html",
-      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\kzm2oyly43-9letlb1gxb.gz",
+      "Route": "dashboard.h62nxz0xre.html",
+      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\kzm2oyly43-h62nxz0xre.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000126887451"
+          "Quality": "0.000120510966"
         }
       ],
       "ResponseHeaders": [
@@ -98,15 +98,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "7880"
+          "Value": "8297"
         },
         {
           "Name": "ETag",
-          "Value": "\"woQcEm/hq1qMq0nuhuqGEBOyKKAafz75WWEwoat33Lc=\""
+          "Value": "\"rp/roaObbdA/XqvsZP9wtbgOP/e+MMjbFpLOMTi9QcA=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 10 Mar 2026 13:58:41 GMT"
+          "Value": "Wed, 11 Mar 2026 10:39:31 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -126,13 +126,13 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0=\""
+          "Value": "W/\"yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "9letlb1gxb"
+          "Value": "h62nxz0xre"
         },
         {
           "Name": "label",
@@ -140,18 +140,18 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0="
+          "Value": "sha256-yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k="
         }
       ]
     },
     {
-      "Route": "dashboard.9letlb1gxb.html",
-      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\publish\\kzm2oyly43-9letlb1gxb.br",
+      "Route": "dashboard.h62nxz0xre.html",
+      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\publish\\kzm2oyly43-h62nxz0xre.br",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "br",
-          "Quality": "0.000148389969"
+          "Quality": "0.000140193467"
         }
       ],
       "ResponseHeaders": [
@@ -161,15 +161,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "6738"
+          "Value": "7132"
         },
         {
           "Name": "ETag",
-          "Value": "\"pIhA+NGr5NF+sQAbwpRbD06RyzdrsncDtvOIwHHbQ9g=\""
+          "Value": "\"lHNwAQlDP0dA/ADFcQHw5AufoSQ0cmjPoJfJmWjpzGU=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 10 Mar 2026 13:58:41 GMT"
+          "Value": "Wed, 11 Mar 2026 10:39:31 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -189,13 +189,13 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0=\""
+          "Value": "W/\"yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "9letlb1gxb"
+          "Value": "h62nxz0xre"
         },
         {
           "Name": "label",
@@ -203,12 +203,12 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0="
+          "Value": "sha256-yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k="
         }
       ]
     },
     {
-      "Route": "dashboard.9letlb1gxb.html",
+      "Route": "dashboard.h62nxz0xre.html",
       "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\wwwroot\\dashboard.html",
       "Selectors": [],
       "ResponseHeaders": [
@@ -218,7 +218,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "31261"
+          "Value": "32539"
         },
         {
           "Name": "Content-Type",
@@ -226,11 +226,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0=\""
+          "Value": "\"yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 10 Mar 2026 13:58:41 GMT"
+          "Value": "Wed, 11 Mar 2026 10:39:31 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -240,7 +240,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "9letlb1gxb"
+          "Value": "h62nxz0xre"
         },
         {
           "Name": "label",
@@ -248,13 +248,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0="
+          "Value": "sha256-yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k="
         }
       ]
     },
     {
-      "Route": "dashboard.9letlb1gxb.html.br",
-      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\publish\\kzm2oyly43-9letlb1gxb.br",
+      "Route": "dashboard.h62nxz0xre.html.br",
+      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\publish\\kzm2oyly43-h62nxz0xre.br",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -263,7 +263,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "6738"
+          "Value": "7132"
         },
         {
           "Name": "Content-Type",
@@ -271,11 +271,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"pIhA+NGr5NF+sQAbwpRbD06RyzdrsncDtvOIwHHbQ9g=\""
+          "Value": "\"lHNwAQlDP0dA/ADFcQHw5AufoSQ0cmjPoJfJmWjpzGU=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 10 Mar 2026 13:58:41 GMT"
+          "Value": "Wed, 11 Mar 2026 10:39:31 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -293,7 +293,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "9letlb1gxb"
+          "Value": "h62nxz0xre"
         },
         {
           "Name": "label",
@@ -301,13 +301,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-pIhA+NGr5NF+sQAbwpRbD06RyzdrsncDtvOIwHHbQ9g="
+          "Value": "sha256-lHNwAQlDP0dA/ADFcQHw5AufoSQ0cmjPoJfJmWjpzGU="
         }
       ]
     },
     {
-      "Route": "dashboard.9letlb1gxb.html.gz",
-      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\kzm2oyly43-9letlb1gxb.gz",
+      "Route": "dashboard.h62nxz0xre.html.gz",
+      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\kzm2oyly43-h62nxz0xre.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -316,7 +316,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "7880"
+          "Value": "8297"
         },
         {
           "Name": "Content-Type",
@@ -324,11 +324,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"woQcEm/hq1qMq0nuhuqGEBOyKKAafz75WWEwoat33Lc=\""
+          "Value": "\"rp/roaObbdA/XqvsZP9wtbgOP/e+MMjbFpLOMTi9QcA=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 10 Mar 2026 13:58:41 GMT"
+          "Value": "Wed, 11 Mar 2026 10:39:31 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -346,7 +346,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "9letlb1gxb"
+          "Value": "h62nxz0xre"
         },
         {
           "Name": "label",
@@ -354,18 +354,18 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-woQcEm/hq1qMq0nuhuqGEBOyKKAafz75WWEwoat33Lc="
+          "Value": "sha256-rp/roaObbdA/XqvsZP9wtbgOP/e+MMjbFpLOMTi9QcA="
         }
       ]
     },
     {
       "Route": "dashboard.html",
-      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\kzm2oyly43-9letlb1gxb.gz",
+      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\kzm2oyly43-h62nxz0xre.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000126887451"
+          "Quality": "0.000120510966"
         }
       ],
       "ResponseHeaders": [
@@ -375,15 +375,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "7880"
+          "Value": "8297"
         },
         {
           "Name": "ETag",
-          "Value": "\"woQcEm/hq1qMq0nuhuqGEBOyKKAafz75WWEwoat33Lc=\""
+          "Value": "\"rp/roaObbdA/XqvsZP9wtbgOP/e+MMjbFpLOMTi9QcA=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 10 Mar 2026 13:58:41 GMT"
+          "Value": "Wed, 11 Mar 2026 10:39:31 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -403,24 +403,24 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0=\""
+          "Value": "W/\"yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0="
+          "Value": "sha256-yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k="
         }
       ]
     },
     {
       "Route": "dashboard.html",
-      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\publish\\kzm2oyly43-9letlb1gxb.br",
+      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\publish\\kzm2oyly43-h62nxz0xre.br",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "br",
-          "Quality": "0.000148389969"
+          "Quality": "0.000140193467"
         }
       ],
       "ResponseHeaders": [
@@ -430,15 +430,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "6738"
+          "Value": "7132"
         },
         {
           "Name": "ETag",
-          "Value": "\"pIhA+NGr5NF+sQAbwpRbD06RyzdrsncDtvOIwHHbQ9g=\""
+          "Value": "\"lHNwAQlDP0dA/ADFcQHw5AufoSQ0cmjPoJfJmWjpzGU=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 10 Mar 2026 13:58:41 GMT"
+          "Value": "Wed, 11 Mar 2026 10:39:31 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -458,13 +458,13 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0=\""
+          "Value": "W/\"yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0="
+          "Value": "sha256-yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k="
         }
       ]
     },
@@ -479,7 +479,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "31261"
+          "Value": "32539"
         },
         {
           "Name": "Content-Type",
@@ -487,11 +487,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0=\""
+          "Value": "\"yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 10 Mar 2026 13:58:41 GMT"
+          "Value": "Wed, 11 Mar 2026 10:39:31 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -501,13 +501,13 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0="
+          "Value": "sha256-yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD+++auHMa9k="
         }
       ]
     },
     {
       "Route": "dashboard.html.br",
-      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\publish\\kzm2oyly43-9letlb1gxb.br",
+      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\publish\\kzm2oyly43-h62nxz0xre.br",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -516,7 +516,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "6738"
+          "Value": "7132"
         },
         {
           "Name": "Content-Type",
@@ -524,11 +524,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"pIhA+NGr5NF+sQAbwpRbD06RyzdrsncDtvOIwHHbQ9g=\""
+          "Value": "\"lHNwAQlDP0dA/ADFcQHw5AufoSQ0cmjPoJfJmWjpzGU=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 10 Mar 2026 13:58:41 GMT"
+          "Value": "Wed, 11 Mar 2026 10:39:31 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -546,13 +546,13 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-pIhA+NGr5NF+sQAbwpRbD06RyzdrsncDtvOIwHHbQ9g="
+          "Value": "sha256-lHNwAQlDP0dA/ADFcQHw5AufoSQ0cmjPoJfJmWjpzGU="
         }
       ]
     },
     {
       "Route": "dashboard.html.gz",
-      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\kzm2oyly43-9letlb1gxb.gz",
+      "AssetFile": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\obj\\Release\\net9.0\\compressed\\kzm2oyly43-h62nxz0xre.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -561,7 +561,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "7880"
+          "Value": "8297"
         },
         {
           "Name": "Content-Type",
@@ -569,11 +569,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"woQcEm/hq1qMq0nuhuqGEBOyKKAafz75WWEwoat33Lc=\""
+          "Value": "\"rp/roaObbdA/XqvsZP9wtbgOP/e+MMjbFpLOMTi9QcA=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 10 Mar 2026 13:58:41 GMT"
+          "Value": "Wed, 11 Mar 2026 10:39:31 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -591,7 +591,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-woQcEm/hq1qMq0nuhuqGEBOyKKAafz75WWEwoat33Lc="
+          "Value": "sha256-rp/roaObbdA/XqvsZP9wtbgOP/e+MMjbFpLOMTi9QcA="
         }
       ]
     }

@@ -293,6 +293,9 @@
 const BASE = '';
 let activeMeetingId = null;
 let liveWs = null;
+let wsRetry = 0;
+let wsRetryTimerId = null;
+let wsPingTimerId = null;
 let allSegments = [];
 let currentAnalysis = {};
 
@@ -312,21 +315,59 @@ function toast(msg, type='ok') {
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ─── WebSocket live stream ───────────────────────────────────
+function wsCleanup() {
+  if (wsPingTimerId) { clearInterval(wsPingTimerId); wsPingTimerId = null; }
+  if (wsRetryTimerId) { clearTimeout(wsRetryTimerId); wsRetryTimerId = null; }
+}
+
 function connectWs(meetingId) {
-  if (liveWs) { liveWs.close(); liveWs = null; }
+  wsCleanup();
+  // Cleanly close any existing connection without triggering its onclose reconnect
+  if (liveWs) {
+    const old = liveWs;
+    old.onclose = null;
+    old.onerror = null;
+    liveWs = null;
+    try { old.close(); } catch(e) {}
+  }
+
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  liveWs = new WebSocket(`${proto}//${location.host}/ws/live/${meetingId}`);
-  liveWs.onopen = () => {
+  const ws = new WebSocket(`${proto}//${location.host}/ws/live/${meetingId}`);
+  liveWs = ws;
+
+  ws.onopen = () => {
+    if (liveWs !== ws) return; // stale connection
+    wsRetry = 0;
     document.getElementById('ws-dot').className = 'dot green';
     document.getElementById('ws-text').textContent = 'WS: live';
+    // Client-side ping every 30 s to keep proxy connections alive
+    wsPingTimerId = setInterval(() => {
+      if (liveWs === ws && ws.readyState === WebSocket.OPEN)
+        ws.send(JSON.stringify({type: 'ping'}));
+    }, 30000);
   };
-  liveWs.onclose = () => {
+
+  ws.onclose = (e) => {
+    if (liveWs !== ws) return; // stale
+    wsCleanup();
     document.getElementById('ws-dot').className = 'dot red';
     document.getElementById('ws-text').textContent = 'WS: off';
-    if (activeMeetingId === meetingId) setTimeout(() => { if (activeMeetingId === meetingId) connectWs(meetingId); }, 3000);
+    if (activeMeetingId === meetingId) {
+      // Exponential backoff: 1 s, 2 s, 4 s, 8 s, 16 s, cap 30 s
+      const delay = Math.min(30000, 1000 * Math.pow(2, wsRetry));
+      wsRetry = Math.min(wsRetry + 1, 5);
+      wsRetryTimerId = setTimeout(() => {
+        if (activeMeetingId === meetingId) connectWs(meetingId);
+      }, delay);
+    }
   };
-  liveWs.onerror = () => { document.getElementById('ws-dot').className = 'dot red'; };
-  liveWs.onmessage = (e) => { try { handleWsMsg(JSON.parse(e.data)); } catch(x){} };
+
+  ws.onerror = () => { document.getElementById('ws-dot').className = 'dot red'; };
+  ws.onmessage = (e) => {
+    if (liveWs !== ws) return;
+    wsRetry = 0; // message received → reset backoff
+    try { handleWsMsg(JSON.parse(e.data)); } catch(x) {}
+  };
 }
 
 function handleWsMsg(msg) {
@@ -536,8 +577,10 @@ async function leaveMeeting() {
   try {
     await fetch(`${BASE}/meetings/${activeMeetingId}/leave`,{method:'POST'});
     toast(`Left ${activeMeetingId}`,'ok');
-    if(liveWs){liveWs.close();liveWs=null;}
-    activeMeetingId=null; allSegments=[];
+    activeMeetingId=null; // null FIRST so onclose doesn't reconnect
+    allSegments=[];
+    wsCleanup();
+    if(liveWs){const old=liveWs;old.onclose=null;liveWs=null;try{old.close();}catch(e){}}
     document.getElementById('transcript-title').textContent='Select a meeting';
     document.getElementById('leave-btn').style.display='none';
     document.getElementById('transcript-area').innerHTML=`<div class="empty-state"><div class="icon">🎙</div><p>Meeting ended.</p></div>`;

@@ -92,7 +92,8 @@ internal sealed class MediaApiServer : IDisposable
             {
                 Console.WriteLine($"[MediaApiServer] Creating media session for {meetingId}");
                 var (_, blob) = _platform.CreateMediaSession(meetingId);
-                _platform.InitializeSession(meetingId);          // starts SpeechTranscriber
+                // InitializeSession (speech recognizer) is started lazily when the first
+                // audio frame arrives — see RealTimeMediaSession.OnAudioMediaReceived.
                 Console.WriteLine($"[MediaApiServer] Session created, blob length={blob?.Length ?? 0} chars");
                 var blobJson  = JsonSerializer.Serialize(blob);  // quoted + escaped
                 resp.StatusCode = 200;
@@ -113,6 +114,7 @@ internal sealed class MediaApiServer : IDisposable
         catch (Exception ex)
         {
             Console.WriteLine($"[MediaApiServer] Error {req.HttpMethod} {req.Url}: {ex.Message}");
+            Console.WriteLine($"[MediaApiServer] Stack: {ex}");
             resp.StatusCode = 500;
             try
             {

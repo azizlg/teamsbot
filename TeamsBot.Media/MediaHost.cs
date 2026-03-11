@@ -69,7 +69,7 @@ internal static class MediaHost
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[MediaHost] Fatal error: {ex}");
+            Console.WriteLine($"[MediaHost] Fatal error: {ex}");
             return 1;
         }
         finally
@@ -84,6 +84,6 @@ internal static class MediaHost
     }
 
     private static string GetRequiredEnv(string name) =>
-        Environment.GetEnvironmentVariable(name)
-        ?? throw new InvalidOperationException($"Environment variable {name} is required but not set.");
+        (Environment.GetEnvironmentVariable(name)
+        ?? throw new InvalidOperationException($"Environment variable {name} is required but not set.")).Trim();
 }

@@ -1,16 +1,16 @@
 ﻿<Project>
   <ItemGroup>
-    <StaticWebAssetEndpoint Include="_content/TeamsBot/dashboard.9letlb1gxb.html">
+    <StaticWebAssetEndpoint Include="_content/TeamsBot/dashboard.h62nxz0xre.html">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\dashboard.html'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"9letlb1gxb"},{"Name":"integrity","Value":"sha256-47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0="},{"Name":"label","Value":"_content/TeamsBot/dashboard.html"}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"31261"},{"Name":"Content-Type","Value":"text/html"},{"Name":"ETag","Value":"\u002247/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0=\u0022"},{"Name":"Last-Modified","Value":"Tue, 10 Mar 2026 13:58:41 GMT"}]]]></ResponseHeaders>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"h62nxz0xre"},{"Name":"integrity","Value":"sha256-yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD\u002B\u002B\u002BauHMa9k="},{"Name":"label","Value":"_content/TeamsBot/dashboard.html"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"32539"},{"Name":"Content-Type","Value":"text/html"},{"Name":"ETag","Value":"\u0022yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD\u002B\u002B\u002BauHMa9k=\u0022"},{"Name":"Last-Modified","Value":"Wed, 11 Mar 2026 10:39:31 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/TeamsBot/dashboard.html">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\dashboard.html'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-47/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0="}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"31261"},{"Name":"Content-Type","Value":"text/html"},{"Name":"ETag","Value":"\u002247/LOqETJzbGO1svpkDGfw85YjRWQKXchqZJYiSEGV0=\u0022"},{"Name":"Last-Modified","Value":"Tue, 10 Mar 2026 13:58:41 GMT"}]]]></ResponseHeaders>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD\u002B\u002B\u002BauHMa9k="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"32539"},{"Name":"Content-Type","Value":"text/html"},{"Name":"ETag","Value":"\u0022yddbloLUpu57TccMZsN1KiTbJ2Nhrf0HD\u002B\u002B\u002BauHMa9k=\u0022"},{"Name":"Last-Modified","Value":"Wed, 11 Mar 2026 10:39:31 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
   </ItemGroup>
 </Project>

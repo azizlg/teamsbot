@@ -1,3 +1,4 @@
+using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -183,33 +184,47 @@ public sealed class MeetingsController : ControllerBase
 
     /// <summary>
     /// Ask TeamsBot.Media (port 8446) to create an audio socket and return the
-    /// appHostedMediaConfig blob. Returns empty string if the media process is
-    /// unavailable, which causes GraphCallsService to fall back to serviceHostedMediaConfig.
+    /// appHostedMediaConfig blob. Throws if the media process is unavailable or returns
+    /// an empty blob — never silently falls back to serviceHostedMediaConfig.
     /// </summary>
     private async Task<string> FetchMediaBlobAsync(string meetingId, CancellationToken ct)
     {
+        var uri = $"http://localhost:8446/session/{Uri.EscapeDataString(meetingId)}";
+        _logger.LogInformation("Requesting media blob from {Uri}", uri);
+
+        HttpResponseMessage resp;
         try
         {
-            var uri  = $"http://localhost:8446/session/{Uri.EscapeDataString(meetingId)}";
-            using var resp = await _mediaHttp.PostAsync(uri, null, ct);
-            if (!resp.IsSuccessStatusCode)
-            {
-                _logger.LogWarning("Media API returned {Status} for {MeetingId} — falling back to serviceHostedMediaConfig",
-                    resp.StatusCode, meetingId);
-                return string.Empty;
-            }
-
-            var json  = await resp.Content.ReadAsStringAsync(ct);
-            using var doc = System.Text.Json.JsonDocument.Parse(json);
-            var blob  = doc.RootElement.GetProperty("blob").GetString() ?? string.Empty;
-            _logger.LogInformation("MediaApiServer returned blob ({Chars} chars) for {MeetingId}",
-                blob.Length, meetingId);
-            return blob;
+            resp = await _mediaHttp.PostAsync(uri, new StringContent(""), ct);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning("TeamsBot.Media unavailable ({Error}) — using serviceHostedMediaConfig", ex.Message);
-            return string.Empty;
+            _logger.LogError("TeamsBot.Media is unreachable at {Uri}: {Error}", uri, ex.Message);
+            throw new InvalidOperationException(
+                $"TeamsBot.Media is unreachable (port 8446). Ensure TeamsBotMedia service is running. Error: {ex.Message}", ex);
         }
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            var err = await resp.Content.ReadAsStringAsync(ct);
+            _logger.LogError("MediaApiServer returned {Status} for {MeetingId}: {Error}",
+                resp.StatusCode, meetingId, err);
+            throw new InvalidOperationException(
+                $"MediaApiServer returned HTTP {(int)resp.StatusCode} for meeting {meetingId}: {err}");
+        }
+
+        var json = await resp.Content.ReadAsStringAsync(ct);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var blob = doc.RootElement.GetProperty("blob").GetString() ?? string.Empty;
+
+        if (string.IsNullOrEmpty(blob))
+        {
+            _logger.LogError("MediaApiServer returned empty blob for {MeetingId} — MediaPlatform session failed", meetingId);
+            throw new InvalidOperationException(
+                "MediaApiServer returned an empty blob. MediaPlatform.CreateMediaConfiguration() may have failed. Check TeamsBotMedia logs.");
+        }
+
+        _logger.LogInformation("MediaApiServer returned blob ({Chars} chars) for {MeetingId}", blob.Length, meetingId);
+        return blob;
     }
 }

@@ -67,10 +67,10 @@ public sealed class TeamsActivityBot : TeamsActivityHandler
         {
             var callbackUri = _config["TunnelUrl"]!.TrimEnd('/');
 
-            // Joining with serviceHostedMediaConfig — Graph manages the media server.
-            // Real-time audio (and thus real-time transcription) requires the RMP SDK
-            // which only supports .NET Framework 4.x. To enable it, retarget to net48.
-            var blob = string.Empty; // unused with serviceHostedMediaConfig
+            // Fetch the appHostedMediaConfig blob from TeamsBot.Media (RMP SDK process on port 8446).
+            // This MUST succeed — never fall back to serviceHostedMediaConfig (blank blob),
+            // because that gives the bot zero audio frames and thus no transcription.
+            var blob = await FetchMediaBlobAsync(meetingId, ct);
 
             // Extract organizer tenant from Teams channelData
             var organizerTenant = (turnContext.Activity.ChannelData as JObject)
@@ -112,5 +112,51 @@ public sealed class TeamsActivityBot : TeamsActivityHandler
                     cancellationToken: ct);
             }
         }
+    }
+
+    // ── media blob helper ─────────────────────────────────────────────────────
+
+    private static readonly System.Net.Http.HttpClient _mediaHttp =
+        new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+
+    private async Task<string> FetchMediaBlobAsync(string meetingId, CancellationToken ct)
+    {
+        var uri = $"http://localhost:8446/session/{Uri.EscapeDataString(meetingId)}";
+        _logger.LogInformation("Requesting media blob from {Uri}", uri);
+
+        System.Net.Http.HttpResponseMessage resp;
+        try
+        {
+            resp = await _mediaHttp.PostAsync(uri, new System.Net.Http.StringContent(""), ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("TeamsBot.Media is unreachable at {Uri}: {Error}", uri, ex.Message);
+            throw new InvalidOperationException(
+                $"TeamsBot.Media is unreachable (port 8446). Ensure TeamsBotMedia service is running. Error: {ex.Message}", ex);
+        }
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            var err = await resp.Content.ReadAsStringAsync(ct);
+            _logger.LogError("MediaApiServer returned {Status} for {MeetingId}: {Error}",
+                resp.StatusCode, meetingId, err);
+            throw new InvalidOperationException(
+                $"MediaApiServer returned HTTP {(int)resp.StatusCode} for meeting {meetingId}: {err}");
+        }
+
+        var json = await resp.Content.ReadAsStringAsync(ct);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var blob = doc.RootElement.GetProperty("blob").GetString() ?? string.Empty;
+
+        if (string.IsNullOrEmpty(blob))
+        {
+            _logger.LogError("MediaApiServer returned empty blob for {MeetingId}", meetingId);
+            throw new InvalidOperationException(
+                "MediaApiServer returned an empty blob. Check TeamsBotMedia logs.");
+        }
+
+        _logger.LogInformation("MediaApiServer returned blob ({Chars} chars) for {MeetingId}", blob.Length, meetingId);
+        return blob;
     }
 }
