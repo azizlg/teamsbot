@@ -4,6 +4,8 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamsBot", "TeamsBot.csproj", "{2132292F-8705-9160-507C-15C59AA024A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamsBot.Media", "TeamsBot.Media\TeamsBot.Media.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF0123456789}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{2132292F-8705-9160-507C-15C59AA024A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2132292F-8705-9160-507C-15C59AA024A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2132292F-8705-9160-507C-15C59AA024A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF0123456789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF0123456789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF0123456789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF0123456789}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

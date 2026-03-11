@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Q5BIqtn4B7Y=",
+  "dgSpecHash": "1MrEqCc8PNQ=",
   "success": true,
   "projectFilePath": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\TeamsBot.csproj",
   "expectedPackageFiles": [
@@ -126,10 +126,7 @@
     "C:\\Users\\rrrr\\.nuget\\packages\\system.threading\\4.3.0\\system.threading.4.3.0.nupkg.sha512",
     "C:\\Users\\rrrr\\.nuget\\packages\\system.threading.overlapped\\4.3.0\\system.threading.overlapped.4.3.0.nupkg.sha512",
     "C:\\Users\\rrrr\\.nuget\\packages\\system.threading.tasks\\4.3.0\\system.threading.tasks.4.3.0.nupkg.sha512",
-    "C:\\Users\\rrrr\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
-    "C:\\Users\\rrrr\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\9.0.6\\microsoft.netcore.app.runtime.win-x64.9.0.6.nupkg.sha512",
-    "C:\\Users\\rrrr\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\9.0.6\\microsoft.windowsdesktop.app.runtime.win-x64.9.0.6.nupkg.sha512",
-    "C:\\Users\\rrrr\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\9.0.6\\microsoft.aspnetcore.app.runtime.win-x64.9.0.6.nupkg.sha512"
+    "C:\\Users\\rrrr\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512"
   ],
   "logs": []
 }

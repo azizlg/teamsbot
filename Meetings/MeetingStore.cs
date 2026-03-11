@@ -100,6 +100,45 @@ public sealed class MeetingStore
         }
     }
 
+    /// <summary>Save the transcript as JSON to the recordings directory.</summary>
+    public async Task SaveTranscriptAsync(string meetingId)
+    {
+        var segments = GetSegments(meetingId);
+        if (segments.Count == 0)
+        {
+            _logger.LogInformation("[{MeetingId}] No transcript segments to save", meetingId);
+            return;
+        }
+
+        var dir = Path.Combine(AppContext.BaseDirectory, "recordings", meetingId);
+        Directory.CreateDirectory(dir);
+        var filePath = Path.Combine(dir, "transcript.json");
+
+        var data = segments.Select(s => new
+        {
+            timestamp  = s.Timestamp,
+            speaker_id = s.SpeakerId,
+            text       = s.Text,
+            language   = s.Language,
+            confidence = s.Confidence
+        }).ToList();
+
+        var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(filePath, json);
+
+        _logger.LogInformation("[{MeetingId}] Transcript saved: {Path} ({Count} segments)", meetingId, filePath, segments.Count);
+    }
+
+    /// <summary>Save transcripts for all meetings that have segments (crash-safety flush).</summary>
+    public async Task SaveAllActiveTranscriptsAsync()
+    {
+        foreach (var meeting in GetAllMeetings())
+        {
+            try { await SaveTranscriptAsync(meeting.MeetingId); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to save transcript for {MeetingId}", meeting.MeetingId); }
+        }
+    }
+
     // -----------------------------------------------------------------------
     // WebSocket management
     // -----------------------------------------------------------------------
@@ -108,7 +147,7 @@ public sealed class MeetingStore
     {
         var bag = _webSockets.GetOrAdd(meetingId, _ => []);
         bag.Add(ws);
-        _logger.LogInformation("WebSocket connected for meeting {MeetingId}", meetingId);
+        _logger.LogDebug("WebSocket connected for meeting {MeetingId}", meetingId);
 
         // Send a single catch-up message containing all existing segments
         var existing = GetSegments(meetingId);
@@ -130,23 +169,35 @@ public sealed class MeetingStore
         if (ws.State == WebSocketState.Open)
             await ws.SendAsync(catchupBytes, WebSocketMessageType.Text, endOfMessage: true, ct);
 
-        // Keep connection alive until client disconnects
+        // Keep connection alive until client disconnects.
+        // Send a heartbeat every 25 s so nginx proxy_read_timeout doesn't drop idle connections.
         var buffer = new byte[1024];
+        var heartbeatBytes = Encoding.UTF8.GetBytes("{\"type\":\"heartbeat\"}");
         try
         {
+            var recvTask = ws.ReceiveAsync(buffer, ct);
             while (ws.State == WebSocketState.Open && !ct.IsCancellationRequested)
             {
-                var result = await ws.ReceiveAsync(buffer, ct);
-                if (result.MessageType == WebSocketMessageType.Close)
-                    break;
+                var completed = await Task.WhenAny(recvTask, Task.Delay(25_000, ct));
+                if (completed == recvTask)
+                {
+                    var result = await recvTask;
+                    if (result.MessageType == WebSocketMessageType.Close)
+                        break;
+                    recvTask = ws.ReceiveAsync(buffer, ct);
+                }
+                else if (!ct.IsCancellationRequested && ws.State == WebSocketState.Open)
+                {
+                    await ws.SendAsync(heartbeatBytes, WebSocketMessageType.Text, endOfMessage: true, ct);
+                }
             }
         }
         catch (OperationCanceledException) { }
         catch (WebSocketException ex) when (ex.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely) { }
         finally
         {
-            _logger.LogInformation("WebSocket disconnected for meeting {MeetingId}", meetingId);
-            await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
+            _logger.LogDebug("WebSocket disconnected for meeting {MeetingId}", meetingId);
+            try { await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None); } catch { }
         }
     }
 

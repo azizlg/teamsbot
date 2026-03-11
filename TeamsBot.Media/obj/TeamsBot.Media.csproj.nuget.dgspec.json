@@ -1,0 +1,85 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\TeamsBot.Media\\TeamsBot.Media.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\TeamsBot.Media\\TeamsBot.Media.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\TeamsBot.Media\\TeamsBot.Media.csproj",
+        "projectName": "TeamsBot.Media",
+        "projectPath": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\TeamsBot.Media\\TeamsBot.Media.csproj",
+        "packagesPath": "C:\\Users\\rrrr\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\rrrr\\Downloads\\teams-meeting-agent\\TeamsBot\\TeamsBot.Media\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\rrrr\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net48"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net48": {
+            "targetAlias": "net48",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
+      },
+      "frameworks": {
+        "net48": {
+          "targetAlias": "net48",
+          "dependencies": {
+            "Microsoft.CognitiveServices.Speech": {
+              "target": "Package",
+              "version": "[1.42.0, )"
+            },
+            "Microsoft.Graph.Communications.Calls.Media": {
+              "target": "Package",
+              "version": "[1.2.0.4953, )"
+            },
+            "Microsoft.Graph.Communications.Client": {
+              "target": "Package",
+              "version": "[1.2.0.4953, )"
+            },
+            "Microsoft.Graph.Communications.Common": {
+              "target": "Package",
+              "version": "[1.2.0.4953, )"
+            },
+            "Microsoft.Graph.Core": {
+              "target": "Package",
+              "version": "[2.0.15, )"
+            },
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )",
+              "autoReferenced": true
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.205\\RuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "win-x64": {
+          "#import": []
+        }
+      }
+    }
+  }
+}

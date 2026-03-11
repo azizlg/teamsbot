@@ -26,4 +26,5 @@ public sealed record MeetingInfo(
 /// <summary>Request body for POST /meetings/join.</summary>
 public sealed record JoinMeetingRequest(
     [property: JsonPropertyName("meeting_url")] string  MeetingUrl,
-    [property: JsonPropertyName("meeting_id")]  string? MeetingId);
+    [property: JsonPropertyName("meeting_id")]  string? MeetingId,
+    [property: JsonPropertyName("tenant_id")]   string? TenantId);

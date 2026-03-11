@@ -8,6 +8,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TeamsBot;
 using TeamsBot.Bot;
+using TeamsBot.Ipc;
+using TeamsBot.Logging;
 using TeamsBot.Meetings;
 using TeamsBot.Transcription;
 
@@ -17,9 +19,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
 // Services
+var logBuffer = new InMemoryLogBuffer();
+builder.Services.AddSingleton(logBuffer);
+builder.Logging.AddProvider(new InMemoryLoggerProvider(logBuffer));
 builder.Services.AddSingleton<MeetingStore>();
 builder.Services.AddSingleton<SpeechTranscriber>();
 builder.Services.AddSingleton<GraphCallsService>();
+builder.Services.AddHostedService<PipeClient>();
 
 builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
 builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
@@ -31,8 +37,8 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// RMP media platform init skipped — requires .NET-Framework-only SDK.
-// See Media/ for the implementation when targeting net48.
+// RMP media platform runs in separate TeamsBot.Media process (.NET Framework 4.8).
+// Transcript segments arrive via named pipe (PipeClient hosted service above).
 
 // Middleware
 app.UseWebSockets(new WebSocketOptions
@@ -127,6 +133,7 @@ app.MapGet("/debug/status", (MeetingStore store, IConfiguration config, IHostEnv
         environment           = env.EnvironmentName,
         total_active_meetings = allMeetings.Count(m => m.Status is "active" or "joining"),
         recent_errors_5min    = 0,
+        meeting_tenant_id     = config["MeetingTenantId"],
         clients               = new { graph_client = true },
         speech_config         = new { azure_speech_configured = !string.IsNullOrEmpty(config["AzureSpeechKey"]) },
         meetings              = meetingsDict
@@ -134,11 +141,38 @@ app.MapGet("/debug/status", (MeetingStore store, IConfiguration config, IHostEnv
 });
 
 // Debug logs
-app.MapGet("/debug/logs", () =>
+app.MapGet("/debug/logs", (InMemoryLogBuffer buf, int? last_n, string? level) =>
 {
-    return Results.Ok(new { entries = Array.Empty<object>() });
+    var n = last_n ?? 300;
+    var entries = buf.GetLast(n);
+    var filtered = string.IsNullOrEmpty(level) || level == "DEBUG"
+        ? entries
+        : entries.Where(e => e.Level != "DEBUG").ToList();
+    return Results.Ok(new
+    {
+        entries = filtered.Select(e => new
+        {
+            timestamp = e.Timestamp.ToUnixTimeMilliseconds() / 1000.0,
+            levelname = e.Level,
+            name      = e.Category,
+            message   = e.Message
+        })
+    });
 });
 
 app.Logger.LogInformation("Teams Bot starting up — {Env}", app.Environment.EnvironmentName);
+
+// Crash-safety: save all recordings when the process is shutting down
+var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+lifetime.ApplicationStopping.Register(() =>
+{
+    var store      = app.Services.GetRequiredService<MeetingStore>();
+    var transcriber = app.Services.GetRequiredService<SpeechTranscriber>();
+
+    app.Logger.LogWarning("Application stopping — flushing active recordings...");
+    try { store.SaveAllActiveTranscriptsAsync().GetAwaiter().GetResult(); } catch { }
+    try { transcriber.SaveAllActiveAudioAsync().GetAwaiter().GetResult(); } catch { }
+    app.Logger.LogWarning("Recording flush complete.");
+});
 
 await app.RunAsync();

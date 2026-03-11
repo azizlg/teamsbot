@@ -58,12 +58,13 @@ public sealed class MeetingsController : ControllerBase
         {
             var callbackUri = _config["TunnelUrl"]!.TrimEnd('/');
 
-            // serviceHostedMediaConfig — Graph manages the media server.
-            var blob = string.Empty;
+            // Try to get an appHostedMediaConfig blob from TeamsBot.Media (RMP SDK process).
+            // Falls back to serviceHostedMediaConfig (empty blob) if the media process is unavailable.
+            var blob = await FetchMediaBlobAsync(meetingId, ct);
 
             _store.StartMeeting(meetingId, req.MeetingUrl);
 
-            var callId = await _graph.JoinMeetingAsync(req.MeetingUrl, meetingId, blob, callbackUri, ct: ct);
+            var callId = await _graph.JoinMeetingAsync(req.MeetingUrl, meetingId, blob, callbackUri, req.TenantId, ct);
 
             _store.UpdateMeetingStatus(meetingId, "joining", callId);
 
@@ -173,5 +174,42 @@ public sealed class MeetingsController : ControllerBase
                 key_phrases       = Array.Empty<string>()
             }
         });
+    }
+
+    // ── media blob helper ──────────────────────────────────────────────────────
+
+    private static readonly HttpClient _mediaHttp =
+        new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+
+    /// <summary>
+    /// Ask TeamsBot.Media (port 8446) to create an audio socket and return the
+    /// appHostedMediaConfig blob. Returns empty string if the media process is
+    /// unavailable, which causes GraphCallsService to fall back to serviceHostedMediaConfig.
+    /// </summary>
+    private async Task<string> FetchMediaBlobAsync(string meetingId, CancellationToken ct)
+    {
+        try
+        {
+            var uri  = $"http://localhost:8446/session/{Uri.EscapeDataString(meetingId)}";
+            using var resp = await _mediaHttp.PostAsync(uri, null, ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Media API returned {Status} for {MeetingId} — falling back to serviceHostedMediaConfig",
+                    resp.StatusCode, meetingId);
+                return string.Empty;
+            }
+
+            var json  = await resp.Content.ReadAsStringAsync(ct);
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var blob  = doc.RootElement.GetProperty("blob").GetString() ?? string.Empty;
+            _logger.LogInformation("MediaApiServer returned blob ({Chars} chars) for {MeetingId}",
+                blob.Length, meetingId);
+            return blob;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("TeamsBot.Media unavailable ({Error}) — using serviceHostedMediaConfig", ex.Message);
+            return string.Empty;
+        }
     }
 }

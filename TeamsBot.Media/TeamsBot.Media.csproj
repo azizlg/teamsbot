@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>TeamsBot.Media</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Graph.Communications.Calls.Media" Version="1.2.0.4953" />
+    <PackageReference Include="Microsoft.Graph.Communications.Client" Version="1.2.0.4953" />
+    <PackageReference Include="Microsoft.Graph.Communications.Common" Version="1.2.0.4953" />
+    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.42.0" />
+    <PackageReference Include="Microsoft.Graph.Core" Version="2.0.15" />
+  </ItemGroup>
+
+  <!-- The RMP SDK ships native DLLs in src/skype_media_lib that must run alongside the exe.
+       The NuGet .targets file references them as <None> items but SDK-style net48 projects
+       don't always honour that. Explicitly copy them here. -->
+  <ItemGroup>
+    <None Include="$(NuGetPackageRoot)microsoft.skype.bots.media\1.20.0.348-alpha\src\skype_media_lib\**\*.*"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false" />
+  </ItemGroup>
+
+</Project>

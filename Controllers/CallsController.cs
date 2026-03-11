@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using TeamsBot.Bot;
@@ -22,6 +23,9 @@ public sealed class CallsController : ControllerBase
     private readonly SpeechTranscriber _transcriber;
     private readonly ILogger<CallsController> _logger;
 
+    private static readonly HttpClient _mediaHttp =
+        new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+
     public CallsController(
         GraphCallsService graph,
         MeetingStore store,
@@ -41,10 +45,12 @@ public sealed class CallsController : ControllerBase
         using (var sr = new System.IO.StreamReader(Request.Body))
             json = await sr.ReadToEndAsync();
 
-        _logger.LogDebug("Graph callback received: {Json}", json[..Math.Min(json.Length, 300)]);
+        _logger.LogInformation("Graph callback received ({Length} bytes): {Json}", json.Length, json[..Math.Min(json.Length, 2000)]);
 
         using var doc  = JsonDocument.Parse(json);
         var body       = doc.RootElement;
+
+        var terminatedMeetings = new List<string>();
 
         _graph.HandleCallback(body, (callId, state) =>
         {
@@ -65,14 +71,37 @@ public sealed class CallsController : ControllerBase
 
             if (state == "terminated")
             {
-                _ = _transcriber.StopSessionAsync(meetingId);
-                _store.EndMeeting(meetingId);
+                _graph.StopTranscriptPolling(callId);
+                terminatedMeetings.Add(meetingId);
                 _logger.LogInformation("Call terminated: {CallId} / meeting {MeetingId}", callId, meetingId);
             }
 
             if (state == "established")
-                _logger.LogInformation("Call established: {CallId} — audio flowing to Speech SDK", callId);
+            {
+                _transcriber.StartSession(meetingId);
+                _graph.StartTranscriptPolling(callId, meetingId);
+                _logger.LogInformation("Call established: {CallId} — transcript polling started", callId);
+            }
         });
+
+        // Save recordings and clean up terminated meetings (must be async, outside sync callback)
+        foreach (var mid in terminatedMeetings)
+        {
+            try
+            {
+                await _store.SaveTranscriptAsync(mid);
+                await _transcriber.StopSessionAsync(mid);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save recordings for meeting {MeetingId}", mid);
+            }
+
+            // Tell TeamsBot.Media to tear down the audio socket for this meeting
+            _ = _mediaHttp.DeleteAsync($"http://localhost:8446/session/{Uri.EscapeDataString(mid)}");
+
+            _store.EndMeeting(mid);
+        }
 
         // Graph expects a 200 OK acknowledgement
         return Ok(new { status = "ok" });

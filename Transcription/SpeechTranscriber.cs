@@ -23,6 +23,9 @@ public sealed class SpeechTranscriber : IAsyncDisposable
     // meetingId → active recognizer session
     private readonly ConcurrentDictionary<string, RecognizerSession> _sessions = new();
 
+    // meetingId → accumulated raw PCM for WAV recording
+    private readonly ConcurrentDictionary<string, MemoryStream> _audioBuffers = new();
+
     public SpeechTranscriber(
         IConfiguration config,
         MeetingStore store,
@@ -98,6 +101,7 @@ public sealed class SpeechTranscriber : IAsyncDisposable
 
         var session = new RecognizerSession(recognizer, pushStream);
         _sessions[meetingId] = session;
+        _audioBuffers[meetingId] = new MemoryStream();
 
         _logger.LogInformation("Speech recognition started for meeting {MeetingId}", meetingId);
     }
@@ -109,15 +113,57 @@ public sealed class SpeechTranscriber : IAsyncDisposable
         {
             session.PushStream.Write(pcmBytes, pcmBytes.Length);
         }
-        else
+
+        // Accumulate raw PCM for WAV recording regardless of speech session state
+        if (_audioBuffers.TryGetValue(meetingId, out var buf))
         {
-            _logger.LogWarning("No active speech session for meeting {MeetingId}", meetingId);
+            lock (buf) { buf.Write(pcmBytes, 0, pcmBytes.Length); }
+        }
+    }
+
+    /// <summary>Save accumulated PCM as a WAV file and remove the buffer.</summary>
+    public async Task SaveAudioAsync(string meetingId)
+    {
+        if (!_audioBuffers.TryRemove(meetingId, out var buffer))
+            return;
+
+        byte[] pcmData;
+        lock (buffer) { pcmData = buffer.ToArray(); buffer.Dispose(); }
+
+        if (pcmData.Length == 0)
+        {
+            _logger.LogInformation("[{MeetingId}] No audio data captured", meetingId);
+            return;
+        }
+
+        var dir = Path.Combine(AppContext.BaseDirectory, "recordings", meetingId);
+        Directory.CreateDirectory(dir);
+        var filePath = Path.Combine(dir, "audio.wav");
+
+        await using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 65536, useAsync: true);
+        WriteWavHeader(fs, pcmData.Length, sampleRate: 16000, bitsPerSample: 16, channels: 1);
+        await fs.WriteAsync(pcmData);
+
+        _logger.LogInformation("[{MeetingId}] Audio saved: {Path} ({Bytes} bytes)", meetingId, filePath, pcmData.Length);
+    }
+
+    /// <summary>Save all active audio buffers (crash-safety flush).</summary>
+    public async Task SaveAllActiveAudioAsync()
+    {
+        foreach (var meetingId in _audioBuffers.Keys.ToList())
+        {
+            try { await SaveAudioAsync(meetingId); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to save audio for {MeetingId}", meetingId); }
         }
     }
 
     /// <summary>Stop recognition and clean up for a meeting.</summary>
     public async Task StopSessionAsync(string meetingId)
     {
+        // Save audio if not already saved (fallback for unexpected termination)
+        if (_audioBuffers.ContainsKey(meetingId))
+            await SaveAudioAsync(meetingId);
+
         if (!_sessions.TryRemove(meetingId, out var session))
             return;
 
@@ -135,6 +181,7 @@ public sealed class SpeechTranscriber : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        await SaveAllActiveAudioAsync();
         foreach (var (id, _) in _sessions)
             await StopSessionAsync(id);
     }
@@ -162,6 +209,28 @@ public sealed class SpeechTranscriber : IAsyncDisposable
         catch { /* Non-critical — fall through to default */ }
 
         return 0.9;
+    }
+
+    private static void WriteWavHeader(Stream s, int pcmLength, int sampleRate, int bitsPerSample, int channels)
+    {
+        int byteRate   = sampleRate * channels * bitsPerSample / 8;
+        short blockAlign = (short)(channels * bitsPerSample / 8);
+        int riffSize   = 36 + pcmLength;
+
+        using var bw = new BinaryWriter(s, System.Text.Encoding.UTF8, leaveOpen: true);
+        bw.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
+        bw.Write(riffSize);
+        bw.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
+        bw.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
+        bw.Write(16);                        // fmt chunk size
+        bw.Write((short)1);                  // PCM format
+        bw.Write((short)channels);
+        bw.Write(sampleRate);
+        bw.Write(byteRate);
+        bw.Write(blockAlign);
+        bw.Write((short)bitsPerSample);
+        bw.Write(System.Text.Encoding.ASCII.GetBytes("data"));
+        bw.Write(pcmLength);
     }
 
     private sealed record RecognizerSession(SpeechRecognizer Recognizer, PushAudioInputStream PushStream);

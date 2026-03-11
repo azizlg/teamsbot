@@ -123,7 +123,6 @@ C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\TeamsBot
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\TeamsBot.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\TeamsBot.sourcelink.json
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\scopedcss\bundle\TeamsBot.styles.css
-C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\compressed\kzm2oyly43-mkux9qow9a.gz
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\staticwebassets.build.json
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\staticwebassets.development.json
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\staticwebassets.build.endpoints.json
@@ -139,3 +138,4 @@ C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\refint\T
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\TeamsBot.pdb
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\TeamsBot.genruntimeconfig.cache
 C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\ref\TeamsBot.dll
+C:\Users\rrrr\Downloads\teams-meeting-agent\TeamsBot\obj\Release\net9.0\compressed\kzm2oyly43-9letlb1gxb.gz
