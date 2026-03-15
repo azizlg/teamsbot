@@ -280,11 +280,11 @@ function Validate-Cert
     `$keySpec  = [string]`$pk.CspKeyContainerInfo.KeyNumber
     if (`$provider -ne "Microsoft RSA SChannel Cryptographic Provider")
     {
-        throw "Certificate '$ct' provider must be 'Microsoft RSA SChannel Cryptographic Provider', found '$provider'."
+        throw "Certificate '$ct' provider must be 'Microsoft RSA SChannel Cryptographic Provider', found '`$provider'."
     }
     if (`$keySpec -ne "Exchange")
     {
-        throw "Certificate '$ct' KeySpec must be Exchange, found '$keySpec'."
+        throw "Certificate '$ct' KeySpec must be Exchange, found '`$keySpec'."
     }
 }
 
