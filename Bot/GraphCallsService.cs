@@ -181,6 +181,12 @@ public sealed class GraphCallsService
                 continue;
 
             var callId = resource.TryGetProperty("id", out var id) ? id.GetString() ?? "" : "";
+            if (string.IsNullOrEmpty(callId) && !string.IsNullOrEmpty(resourceUrl))
+            {
+                var slash = resourceUrl.LastIndexOf('/');
+                if (slash >= 0 && slash < resourceUrl.Length - 1)
+                    callId = resourceUrl[(slash + 1)..];
+            }
             var state  = resource.TryGetProperty("state", out var st) ? st.GetString() ?? "" : "";
 
             if (string.IsNullOrEmpty(callId)) continue;
