@@ -419,7 +419,9 @@ Write-Host "Uploaded media package." -ForegroundColor Green
 Write-Host "`n=== [6/6] Applying remote deployment ===" -ForegroundColor Cyan
 Write-Host ">>> PASSWORD PROMPT 3 of 3 <<<" -ForegroundColor Yellow
 $remoteCommand = "& { `$stage = 'C:\bot-dotnet-stage'; try { Remove-Item `$stage -Recurse -Force -ErrorAction SilentlyContinue; Expand-Archive C:\teamsbot.zip -DestinationPath `$stage -Force; powershell -ExecutionPolicy Bypass -File `"`$stage\deploy-remote.ps1`" } finally { Remove-Item `$stage -Recurse -Force -ErrorAction SilentlyContinue } }"
-ssh "${VmUser}@${VmHost}" "powershell -NonInteractive -Command `"$remoteCommand`""
+$remoteCommandBytes = [System.Text.Encoding]::Unicode.GetBytes($remoteCommand)
+$remoteEncodedCommand = [Convert]::ToBase64String($remoteCommandBytes)
+ssh "${VmUser}@${VmHost}" "powershell -NoProfile -NonInteractive -EncodedCommand $remoteEncodedCommand"
 if ($LASTEXITCODE -ne 0)
 {
     throw "Remote deployment failed. Inspect the VM logs and backup folders."
