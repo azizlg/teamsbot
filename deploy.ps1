@@ -104,13 +104,26 @@ $webZip     = Join-Path $env:TEMP "teamsbot-web-safe.zip"
 $mediaZip   = Join-Path $env:TEMP "teamsbot-media-safe.zip"
 $healthUri  = "$($deployConfig.TunnelUrl.TrimEnd('/'))/health"
 
-$gitStatus = git -C $ProjectDir status --short --untracked-files=no
+$gitStatus = @(git -C $ProjectDir status --short --untracked-files=no)
 if ($LASTEXITCODE -ne 0)
 {
     throw "Unable to read git status for $ProjectDir"
 }
 
-if ($gitStatus -and -not $AllowDirtyWorktree)
+$gitRelevantStatus = @(
+    $gitStatus |
+    Where-Object {
+        if ($_.Length -lt 4)
+        {
+            return $true
+        }
+
+        $path = ($_.Substring(3)).Replace('\', '/')
+        return $path -notmatch '^(bin/|obj/|TeamsBot\.Media/bin/|TeamsBot\.Media/obj/)'
+    }
+)
+
+if ($gitRelevantStatus -and -not $AllowDirtyWorktree)
 {
     throw "Working tree is dirty. Commit or stash your changes first, or rerun with -AllowDirtyWorktree if this is intentional."
 }
@@ -132,7 +145,7 @@ Write-Host "  Web project  : TeamsBot.csproj" -ForegroundColor Cyan
 Write-Host "  Media target : net48 / win-x64" -ForegroundColor Cyan
 Write-Host "  Media cert   : $($deployConfig.CertThumbprint)" -ForegroundColor Cyan
 Write-Host "  Git commit   : $gitCommit" -ForegroundColor Cyan
-if ($gitStatus)
+if ($gitRelevantStatus)
 {
     Write-Host "  Git status   : dirty (allowed by flag)" -ForegroundColor Yellow
 }
@@ -367,7 +380,7 @@ try
 }
 catch
 {
-    Write-Host "DEPLOY FAILED: `$($_.Exception.Message)" -ForegroundColor Red
+    Write-Host ('DEPLOY FAILED: ' + `$_.Exception.Message) -ForegroundColor Red
 
     Stop-ServiceIfPresent "TeamsBotDotNet"
     Stop-ServiceIfPresent "TeamsBotMedia"
